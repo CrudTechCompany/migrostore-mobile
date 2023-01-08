@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:migrostore/view/setting_screen/settings_screen.dart';
 import 'package:migrostore/view/setting_screen/settings_screen_controller.dart';
 import 'package:provider/provider.dart';
-
 import '../menu_screen/menu_screen.dart';
 import '../menu_screen/menu_screen_controller.dart';
 import '../profile_screen/profile_screen.dart';
@@ -14,7 +13,13 @@ class MainScreenController extends ChangeNotifier {
   int _index = 0;
   int get index => _index;
   void _setIndex(int value) {
-    _index = value;
+    if (value == 1) {
+      _setIsUserAuthorized();
+      _index = 0;
+    } else {
+      _index = value;
+    }
+
     notifyListeners();
   }
 
@@ -60,4 +65,36 @@ class MainScreenController extends ChangeNotifier {
   }
 
   Function get setHelpScreenState => _setHelpScreenState;
+
+  // Auth screen state
+
+  // bool _authScreenState = false;
+  // bool get authScreenState => _authScreenState;
+  // void _setAuthScreenState() {
+  //   _authScreenState = !_authScreenState;
+  // }
+
+  // Function get setAuthScreenState => _setAuthScreenState;
+
+  // Find work screen state
+
+  bool _workScreenState = false;
+  bool get workScreenState => _workScreenState;
+  void _setWorkScreenState() {
+    _workScreenState = !_workScreenState;
+    notifyListeners();
+  }
+
+  Function get setWorkScreenState => _setWorkScreenState;
+
+  // Is the user authorized check
+
+  bool _isUserAuthorized = true;
+  bool get isUserAuthorazed => _isUserAuthorized;
+  void _setIsUserAuthorized() {
+    _isUserAuthorized = !_isUserAuthorized;
+    notifyListeners();
+  }
+
+  Function get setIsUserAuthorized => _setIsUserAuthorized;
 }

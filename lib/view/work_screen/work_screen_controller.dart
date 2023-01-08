@@ -1,40 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:migrostore/services/api_client/api_client.dart';
 
-class ProfileScreenController extends ChangeNotifier {
+class WorkScreenController extends ChangeNotifier {
+  // initial Modal window
+
+  bool _initialModalWindowState = true;
+  bool get initialModalWindowState => _initialModalWindowState;
+  void _setInitialModalWindowState() {
+    _initialModalWindowState = !_initialModalWindowState;
+    notifyListeners();
+  }
+
+  Function get setInitialModalWindowState => _setInitialModalWindowState;
+
   // Name text field
 
   String? _inputedName;
   String? get inputedName => _inputedName;
-  void _onChangeInputedName(String value) {
+  void _onChangedInputedName(String value) {
     value.isEmpty ? _inputedName = null : _inputedName = value;
-    _setSaveProfileButtonState();
     notifyListeners();
   }
 
-  Function get onChangeInputedName => _onChangeInputedName;
+  Function get onChangedInputedName => _onChangedInputedName;
 
   // Surname text field
 
   String? _inputedSurName;
   String? get inputedSurName => _inputedSurName;
-  void _onChangeInputedSurName(String value) {
+  void _onChangedInputedSurName(String value) {
     value.isEmpty ? _inputedSurName = null : _inputedSurName = value;
-    _setSaveProfileButtonState();
     notifyListeners();
   }
 
-  Function get onChangeInputedSurName => _onChangeInputedSurName;
+  Function get onChangedInputedSurName => _onChangedInputedSurName;
 
-  // BirthDay date picker
+  // Phone text field
 
-  String? _selectedBirthDay;
-  String? get selectedBirthDay => _selectedBirthDay;
+  String? _inputedPhoneNumber;
+  String? get inputedPhoneNumber => _inputedPhoneNumber;
+  void _onChangedInputedPhoneNumber(String value) {
+    value.isEmpty ? _inputedPhoneNumber = null : _inputedPhoneNumber = value;
+    notifyListeners();
+  }
 
-  void _onClickBirthDayField(BuildContext context) async {
+  Function get onChangedInputedPhoneNumber => _onChangedInputedPhoneNumber;
+
+  // Select birthday date
+
+  String? _selectedDate;
+  String? get selectedDate => _selectedDate;
+  void _setSelectedDate(BuildContext context) async {
     await showDatePicker(
       context: context,
       initialDate: DateTime(
@@ -51,52 +70,53 @@ class ProfileScreenController extends ChangeNotifier {
         DateTime.now().day,
       ),
     ).then(
-      (value) => _setSelectedBirthDay(value),
+      (value) {
+        if (value == null) {
+          return;
+        } else {
+          _selectedDate = null;
+          value.day > 9
+              ? _selectedDate = value.day.toString()
+              : _selectedDate = "0${value.day}";
+          value.month > 9
+              ? _selectedDate = "${_selectedDate!}-${value.month}"
+              : _selectedDate = "${_selectedDate!}-0${value.month}";
+          _selectedDate = "${_selectedDate!}-${value.year}";
+          notifyListeners();
+        }
+      },
     );
   }
 
-  Function get onClickBirthDayField => _onClickBirthDayField;
+  Function get setSelectedDate => _setSelectedDate;
 
-  void _setSelectedBirthDay(DateTime? date) {
-    if (date == null) {
-      return;
-    } else {
-      _selectedBirthDay = "";
-      date.day > 9
-          ? _selectedBirthDay = _selectedBirthDay! + date.day.toString()
-          : _selectedBirthDay = "${_selectedBirthDay!}0${date.day.toString()}";
-      date.month > 9
-          ? _selectedBirthDay = "${_selectedBirthDay!}-${date.month.toString()}"
-          : _selectedBirthDay =
-              "${_selectedBirthDay!}-0${date.month.toString()}";
-      _selectedBirthDay = "${_selectedBirthDay!}-${date.year.toString()}";
-    }
-    _setSaveProfileButtonState();
-    notifyListeners();
-  }
+  // Email text field
 
-  Function get setSelectedBirthDay => _setSelectedBirthDay;
-
-  //Email text field
-  final TextEditingController _emailController = TextEditingController();
-  TextEditingController get emailController => _emailController;
   String? _inputedEmail;
   String? get inputedEmail => _inputedEmail;
-  bool _emailErrorState = false;
-  bool get emailErrorState => _emailErrorState;
-  final String _emailErrorText = "Неправильний формат пошти";
-  String get emailErrorText => _emailErrorText;
-  void _onChangeInputedEmail(String value) {
+  void _onChangedInputedEmail(String value) {
     value.isEmpty ? _inputedEmail = null : _inputedEmail = value;
-    _setSaveProfileButtonState();
     notifyListeners();
   }
 
-  Function get onChangeInputedEmail => _onChangeInputedEmail;
+  Function get onChangedInputedEmail => _onChangedInputedEmail;
 
-  // State drop down list
+  // State dropdown button
 
-  final List<DropdownMenuItem<String>> _stateItems = [
+  String? _selectedState;
+  String? get selectedState => _selectedState;
+  void _onChangedSelectedState(String? value) {
+    if (value == null) {
+      return;
+    } else {
+      _selectedState = value;
+      notifyListeners();
+    }
+  }
+
+  Function get onChangedSelectedState => _onChangedSelectedState;
+
+  final List<DropdownMenuItem<String>> _stateList = [
     DropdownMenuItem<String>(
       value: "Ukraine",
       child: Row(
@@ -248,20 +268,25 @@ class ProfileScreenController extends ChangeNotifier {
       ),
     ),
   ];
-  List<DropdownMenuItem<String>> get stateItems => _stateItems;
-
-  String? _selectedState;
-  String? get selectedState => _selectedState;
-  void _setSelectedState(String value) {
-    _selectedState = value;
-    notifyListeners();
-  }
-
-  Function get setSelectedState => _setSelectedState;
+  List<DropdownMenuItem<String>> get stateList => _stateList;
 
   // Grounds for entry
 
-  final List<DropdownMenuItem<String>> _entryItems = [
+  String? _selectedEntry;
+  String? get selectedEntry => _selectedEntry;
+
+  void _onChangedSelectedEntry(String? value) {
+    if (value == null) {
+      return;
+    } else {
+      _selectedEntry = value;
+      notifyListeners();
+    }
+  }
+
+  Function get onChangedSelectedEntry => _onChangedSelectedEntry;
+
+  final List<DropdownMenuItem<String>> _entryList = [
     DropdownMenuItem<String>(
       value: "Refugee",
       child: Text(
@@ -299,21 +324,67 @@ class ProfileScreenController extends ChangeNotifier {
       ),
     ),
   ];
-  List<DropdownMenuItem<String>> get entryItems => _entryItems;
+  List<DropdownMenuItem<String>> get entryList => _entryList;
 
-  String? _selectedEntry;
-  String? get selectedEntry => _selectedEntry;
+  // Select city screen
 
-  void _setSelectedEntry(String value) {
-    _selectedEntry = value;
+  bool _selectCityScreenState = false;
+  bool get selectCityScreenState => _selectCityScreenState;
+  final Map<String, bool> _cityList = {};
+  Map<String, bool> get cityList => _cityList;
+  void _setSelectCityScreenState() async {
+    if (_selectCityScreenState) {
+      _selectCityScreenState = !_selectCityScreenState;
+    } else {
+      _selectCityScreenState = !_selectCityScreenState;
+      await ApiClient().getCitiesList().then(
+        (value) {
+          for (String element in value) {
+            _cityList[element] = false;
+          }
+        },
+      );
+    }
     notifyListeners();
   }
 
-  Function get setSelectedEntry => _setSelectedEntry;
+  Function get setSelectCityScreenState => _setSelectCityScreenState;
 
-  // Polish or english level list
+  // Select button state
 
-  final List<DropdownMenuItem<String>> _languangeItems = [
+  bool _citySelectButtonState = false;
+  bool get citySelectButtonState => _citySelectButtonState;
+  void _setCitySelectButtonState() {
+    for (bool value in _cityList.values.toList()) {
+      if (value) {
+        _citySelectButtonState = true;
+        break;
+      } else {
+        _citySelectButtonState = false;
+      }
+    }
+  }
+
+  // Click city list item
+
+  void _onClickCityListItem(int index) {
+    _cityList.update(_cityList.keys.toList()[index],
+        (value) => !_cityList.values.toList()[index]);
+    _setCitySelectButtonState();
+    notifyListeners();
+  }
+
+  Function get onClickCityListItem => _onClickCityListItem;
+
+  // English or polish level list
+
+  String? _selectedPolishLevel;
+  String? get selectedPolishLevel => _selectedPolishLevel;
+
+  String? _selectedEnglishLevel;
+  String? get selectedEnglishLevel => _selectedEnglishLevel;
+
+  final List<DropdownMenuItem<String>> _levelList = [
     DropdownMenuItem(
       value: "Elementary",
       child: Text(
@@ -387,109 +458,32 @@ class ProfileScreenController extends ChangeNotifier {
       ),
     ),
   ];
-  List<DropdownMenuItem<String>> get languangeItems => _languangeItems;
+  List<DropdownMenuItem<String>> get levelList => _levelList;
 
-  String? _selectedPolishLevel;
-  String? get selectedPolishLevel => _selectedPolishLevel;
+  // Select skill screen
 
-  String? _selectedEnglishLevel;
-  String? get selectedEnglishLevel => _selectedEnglishLevel;
-
-  void _setSelectedLanguangeLevel(String type, String value) {
-    switch (type) {
-      case "polish":
-        {
-          _selectedPolishLevel = value;
-          break;
-        }
-      case "english":
-        {
-          _selectedEnglishLevel = value;
-          break;
-        }
-    }
-    notifyListeners();
-  }
-
-  Function get setSelectedLanguangeLevel => _setSelectedLanguangeLevel;
-
-  // Select city screen
-
-  final Map<String, bool> _cityList = {};
-  Map<String, bool> get cityList => _cityList;
-
-  Future<void> _setCityList() async {
-    List<String> response = await ApiClient().getCitiesList();
-    for (String e in response) {
-      _cityList[e] = false;
-    }
-  }
-
-  bool _selectCityScreenState = false;
-  bool get selectCityScreenState => _selectCityScreenState;
-  void _setSelectCityScreenState() async {
-    if (_selectCityScreenState) {
-      _selectCityScreenState = !_selectCityScreenState;
+  bool _selectSkillScreenState = false;
+  bool get selectSkillScreenState => _selectSkillScreenState;
+  void _setSelectSkillScreenState() async {
+    if (_selectSkillScreenState) {
+      _selectSkillScreenState = !_selectSkillScreenState;
     } else {
-      await _setCityList();
-      _selectCityScreenState = !_selectCityScreenState;
+      await ApiClient().getSkillsList().then(
+        (value) {
+          for (String element in value) {
+            _skillList[element] = false;
+          }
+        },
+      );
+      _selectSkillScreenState = !_selectSkillScreenState;
     }
     notifyListeners();
   }
 
-  Function get setSelectCityScreenState => _setSelectCityScreenState;
-
-  void _onClickCityListItem(int index) {
-    _cityList.update(
-      _cityList.keys.toList()[index],
-      (value) => !_cityList.values.toList()[index],
-    );
-    _setSelectButtonState();
-    notifyListeners();
-  }
-
-  Function get onClickCityListItem => _onClickCityListItem;
-
-  bool _selectButtonState = false;
-  bool get selectButtonState => _selectButtonState;
-
-  void _setSelectButtonState() {
-    for (bool item in _cityList.values.toList()) {
-      if (item) {
-        _selectButtonState = true;
-        break;
-      } else {
-        _selectButtonState = false;
-      }
-    }
-  }
-
-  // Select skills screen
-
-  bool _selectSkilsScreenState = false;
-  bool get selectSkillsScreenState => _selectSkilsScreenState;
-  void _setSelectSkillsScreenState() {
-    if (_selectSkilsScreenState) {
-      _selectSkilsScreenState = !_selectSkilsScreenState;
-    } else {
-      _getSkillList();
-      _selectSkilsScreenState = !_selectSkilsScreenState;
-    }
-    notifyListeners();
-  }
-
-  Function get setSelectSkillsScreenState => _setSelectSkillsScreenState;
+  Function get setSelectSkillScreenState => _setSelectSkillScreenState;
 
   final Map<String, bool> _skillList = {};
   Map<String, bool> get skillList => _skillList;
-
-  Future<void> _getSkillList() async {
-    List<String> response = await ApiClient().getSkillsList();
-    for (String item in response) {
-      _skillList[item] = false;
-    }
-    notifyListeners();
-  }
 
   void _onClickSkillListItem(int index) {
     _skillList.update(_skillList.keys.toList()[index],
@@ -499,6 +493,8 @@ class ProfileScreenController extends ChangeNotifier {
   }
 
   Function get onClickSkillListItem => _onClickSkillListItem;
+
+  // Select skill button
 
   bool _selectSkillButtonState = false;
   bool get selectSkillButtonState => _selectSkillButtonState;
@@ -512,46 +508,4 @@ class ProfileScreenController extends ChangeNotifier {
       }
     }
   }
-
-  //Save profiledata button
-
-  bool _saveProfileButtonState = false;
-  bool get saveProfileButtonState => _saveProfileButtonState;
-  void _setSaveProfileButtonState() {
-    if (_inputedName != null &&
-        _inputedSurName != null &&
-        _selectedBirthDay != null &&
-        _inputedEmail != null) {
-      _saveProfileButtonState = true;
-    } else {
-      _saveProfileButtonState = false;
-    }
-  }
-
-  void _onClickSaveProfileButton() {
-    if (RegExp(r"(\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,6})").hasMatch(_inputedEmail!)) {
-      _emailErrorState = false;
-      _setSuccessfullyModalWindow();
-    } else {
-      _emailErrorState = true;
-    }
-    notifyListeners();
-  }
-
-  Function get onClickSaveProfileButton => _onClickSaveProfileButton;
-
-  // Successfully modal window
-
-  bool _successfullyModalWindow = false;
-  bool get successfullyModalWindow => _successfullyModalWindow;
-  void _setSuccessfullyModalWindow() {
-    if (_successfullyModalWindow) {
-      _successfullyModalWindow = !_successfullyModalWindow;
-      notifyListeners();
-    } else {
-      _successfullyModalWindow = !_successfullyModalWindow;
-    }
-  }
-
-  Function get setSuccessfullyModalWindow => _setSuccessfullyModalWindow;
 }

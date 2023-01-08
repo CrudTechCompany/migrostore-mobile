@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:migrostore/view/auth_screen/auth_screen.dart';
+import 'package:migrostore/view/auth_screen/auth_screen_controller.dart';
 import 'package:migrostore/view/legalization_screen/legalization_screen.dart';
 import 'package:migrostore/view/legalization_screen/legalization_screen_controller.dart';
 import 'package:migrostore/view/main_screen/main_screen_controller.dart';
+import 'package:migrostore/view/work_screen/work_screen.dart';
+import 'package:migrostore/view/work_screen/work_screen_controller.dart';
 import 'package:provider/provider.dart';
 import '../help_screen/help_screen.dart';
 import '../help_screen/help_screen_controller.dart';
@@ -91,6 +95,18 @@ class MainScreen extends StatelessWidget {
                 child: const HelpScreen(),
               )
             : const SizedBox.shrink(),
+        context.watch<MainScreenController>().workScreenState
+            ? ChangeNotifierProvider(
+                create: (_) => WorkScreenController(),
+                child: const WorkScreen(),
+              )
+            : const SizedBox.shrink(),
+        context.watch<MainScreenController>().isUserAuthorazed
+            ? const SizedBox.shrink()
+            : ChangeNotifierProvider(
+                create: (_) => AuthScreenController(),
+                child: const AuthScreen(),
+              ),
       ],
     );
   }

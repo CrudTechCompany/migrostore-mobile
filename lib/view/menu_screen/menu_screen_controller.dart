@@ -42,6 +42,12 @@ class MenuScreenController extends ChangeNotifier {
               .setLegalizationScreenState();
           break;
         }
+      case 2:
+        {
+          Provider.of<MainScreenController>(context, listen: false)
+              .setWorkScreenState();
+          break;
+        }
       case 3:
         {
           Provider.of<MainScreenController>(context, listen: false)
