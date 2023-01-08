@@ -508,4 +508,16 @@ class WorkScreenController extends ChangeNotifier {
       }
     }
   }
+
+  // Successfully modal window
+
+  bool _successfullyModalWindowState = false;
+  bool get successfullyModalWindowState => _successfullyModalWindowState;
+  void _setSuccessfullyModalWindowState() {
+    _successfullyModalWindowState = !_successfullyModalWindowState;
+    notifyListeners();
+  }
+
+  Function get setSuccessfullyModalWindowState =>
+      _setSuccessfullyModalWindowState;
 }

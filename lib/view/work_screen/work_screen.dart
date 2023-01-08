@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:migrostore/view/main_screen/main_screen_controller.dart';
+import 'package:migrostore/view/modal_window/successfully_work_modal_window.dart';
 import 'package:migrostore/view/modal_window/work_initial_modal_window.dart';
 import 'package:migrostore/view/work_screen/components/work_select_city_screen.dart';
 import 'package:migrostore/view/work_screen/work_screen_controller.dart';
@@ -758,22 +759,27 @@ class WorkScreen extends StatelessWidget {
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 40.0.h),
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(30.0.r),
-                        color: const Color.fromARGB(255, 24, 24, 24),
-                      ),
-                      child: SizedBox(
-                        width: 345.0.w,
-                        height: 53.0.w,
-                        child: Center(
-                          child: Text(
-                            "Вислати",
-                            style: GoogleFonts.roboto(
-                              fontSize: 18.0.sp,
-                              fontWeight: FontWeight.w500,
-                              fontStyle: FontStyle.normal,
-                              color: const Color.fromARGB(255, 255, 255, 255),
+                    child: InkWell(
+                      onTap: () => context
+                          .read<WorkScreenController>()
+                          .setSuccessfullyModalWindowState(),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30.0.r),
+                          color: const Color.fromARGB(255, 24, 24, 24),
+                        ),
+                        child: SizedBox(
+                          width: 345.0.w,
+                          height: 53.0.w,
+                          child: Center(
+                            child: Text(
+                              "Вислати",
+                              style: GoogleFonts.roboto(
+                                fontSize: 18.0.sp,
+                                fontWeight: FontWeight.w500,
+                                fontStyle: FontStyle.normal,
+                                color: const Color.fromARGB(255, 255, 255, 255),
+                              ),
                             ),
                           ),
                         ),
@@ -835,6 +841,9 @@ class WorkScreen extends StatelessWidget {
             : const SizedBox.shrink(),
         context.watch<WorkScreenController>().selectSkillScreenState
             ? const WorkSelectSkillScreen()
+            : const SizedBox.shrink(),
+        context.watch<WorkScreenController>().successfullyModalWindowState
+            ? const SuccessfullyWorkModalWindow()
             : const SizedBox.shrink(),
       ],
     );
