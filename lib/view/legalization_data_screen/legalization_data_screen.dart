@@ -127,10 +127,18 @@ class LegalizationDataScreen extends StatelessWidget {
                     SizedBox(
                       height: 42.0.w,
                       child: TextField(
-                        maxLength: 12,
+                        controller: context
+                            .read<LegalizationScreenController>()
+                            .phoneNumberController,
+                        maxLength: 15,
                         onChanged: (value) => context
                             .read<LegalizationScreenController>()
-                            .onChangeInputedPhoneNumber(value),
+                            .setSendButtonState(),
+                        inputFormatters: [
+                          context
+                              .read<LegalizationScreenController>()
+                              .phoneNumberFormatter,
+                        ],
                         keyboardType: TextInputType.phone,
                         cursorColor: const Color.fromARGB(255, 24, 24, 24),
                         style: GoogleFonts.roboto(
@@ -159,10 +167,10 @@ class LegalizationDataScreen extends StatelessWidget {
                                       .errorPhoneNumberState
                                   ? const Color.fromARGB(255, 255, 0, 0)
                                   : context
-                                              .watch<
-                                                  LegalizationScreenController>()
-                                              .inputedPhoneNumber ==
-                                          null
+                                          .watch<LegalizationScreenController>()
+                                          .phoneNumberController
+                                          .text
+                                          .isEmpty
                                       ? const Color.fromARGB(255, 180, 180, 180)
                                       : const Color.fromARGB(255, 24, 24, 24),
                             ),
@@ -220,6 +228,9 @@ class LegalizationDataScreen extends StatelessWidget {
                     SizedBox(
                       height: 42.0.w,
                       child: TextField(
+                        controller: context
+                            .read<LegalizationScreenController>()
+                            .emailController,
                         onChanged: (value) => context
                             .read<LegalizationScreenController>()
                             .onChangeInputedEmail(value),

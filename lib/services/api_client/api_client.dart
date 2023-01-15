@@ -8,8 +8,6 @@ class ApiClient {
   // List of cities
 
   Future<List<String>> _getCitiesList() async {
-    List<String> tempo = [];
-
     io.HttpClientRequest request = await _apiClient.getUrl(
       Uri(
         scheme: "https",
@@ -18,14 +16,14 @@ class ApiClient {
       ),
     );
     io.HttpClientResponse response = await request.close();
-    String result = "";
-    await response.transform(utf8.decoder).forEach(
-      (element) {
-        result += element;
-      },
-    );
-    for (var element in (jsonDecode(result) as List<dynamic>)) {
-      tempo.add(element);
+
+    String responseResult = "";
+    List<String> tempo = [];
+    await response.transform(utf8.decoder).forEach((element) {
+      responseResult += element;
+    });
+    for (dynamic i in jsonDecode(responseResult)) {
+      tempo.add(i["city_name"]);
     }
     _apiClient.close();
     return tempo;
@@ -45,14 +43,14 @@ class ApiClient {
       ),
     );
     io.HttpClientResponse response = await request.close();
-    String result = "";
+    String responceResult = "";
     await response.transform(utf8.decoder).forEach(
       (element) {
-        result += element;
+        responceResult += element;
       },
     );
-    for (var element in (jsonDecode(result) as List<dynamic>)) {
-      tempo.add(element);
+    for (var element in jsonDecode(responceResult)) {
+      tempo.add(element["skill_name"]);
     }
     _apiClient.close();
     return tempo;
@@ -76,4 +74,19 @@ class ApiClient {
 
   Future<int> Function(Map<String, String?> body)
       get createLegalizationRequest => _createLegalizationRequest;
+
+  // Find work request
+
+  Future<int> _createWorkRequest(Map<String, String> body) async {
+    io.HttpClientRequest request = await _apiClient.postUrl(
+      Uri(scheme: "https", host: _host, path: "/api/v1/works/create"),
+    );
+    request.write(jsonEncode(body));
+    io.HttpClientResponse response = await request.close();
+    _apiClient.close();
+    return response.statusCode;
+  }
+
+  Future<int> Function(Map<String, String> body) get createWorkRequest =>
+      _createWorkRequest;
 }

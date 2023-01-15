@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:migrostore/services/api_client/api_client.dart';
 import 'package:provider/provider.dart';
 
@@ -165,7 +166,7 @@ class LegalizationScreenController extends ChangeNotifier {
   String? get inputedName => _inputedName;
 
   void _onChangeInputedName(String value) {
-    _inputedName = value;
+    value.isEmpty ? _inputedName = null : _inputedName = value;
     _setSendButtonState();
     notifyListeners();
   }
@@ -174,15 +175,18 @@ class LegalizationScreenController extends ChangeNotifier {
 
   // Phone number input field
 
-  String? _inputedPhoneNumber;
-  String? get inputedPhoneNumber => _inputedPhoneNumber;
-  void _onChangeInputedPhoneNumber(String value) {
-    _inputedPhoneNumber = value;
-    _setSendButtonState();
-    notifyListeners();
-  }
+  final TextEditingController _phoneNumberController = TextEditingController();
+  TextEditingController get phoneNumberController => _phoneNumberController;
 
-  Function get onChangeInputedPhoneNumber => _onChangeInputedPhoneNumber;
+  final MaskTextInputFormatter _phoneNumberFormatter = MaskTextInputFormatter(
+    mask: "+48 ###-###-###",
+    filter: {
+      "#": RegExp(
+        "[0-9]",
+      ),
+    },
+  );
+  MaskTextInputFormatter get phoneNumberFormatter => _phoneNumberFormatter;
 
   bool _errorPhoneNumberState = false;
   bool get errorPhoneNumberState => _errorPhoneNumberState;
@@ -191,10 +195,13 @@ class LegalizationScreenController extends ChangeNotifier {
 
   // Email input field
 
+  final TextEditingController _emailController = TextEditingController();
+  TextEditingController get emailController => _emailController;
+
   String? _inputedEmail;
   String? get inputedEmail => _inputedEmail;
   void _onChangeInputedEmail(String value) {
-    _inputedEmail = value;
+    value.isEmpty ? _inputedEmail = null : _inputedEmail = value;
     notifyListeners();
   }
 
@@ -251,19 +258,18 @@ class LegalizationScreenController extends ChangeNotifier {
   bool get sendButtonState => _sendButtonState;
 
   void _setSendButtonState() {
-    if (_inputedName == null || _inputedPhoneNumber == null) {
+    if (_inputedName == null || _phoneNumberController.text.isEmpty) {
       _sendButtonState = false;
     } else {
       _sendButtonState = true;
     }
+    notifyListeners();
   }
 
   Function get setSendButtonState => _setSendButtonState;
 
   void _onClickSendButton(BuildContext context) async {
-    if (_inputedEmail == null &&
-        _inputedPhoneNumber!.contains("+48") &&
-        _inputedPhoneNumber!.length == 12) {
+    if (_inputedEmail == null && _phoneNumberController.text.length == 15) {
       _emailErrorState = false;
       _errorPhoneNumberState = false;
       _errorPhoneNumberText = null;
@@ -271,7 +277,7 @@ class LegalizationScreenController extends ChangeNotifier {
         'city': _selectedCity,
         'service': _selectedService,
         'name': _inputedName,
-        'phone_number': _inputedPhoneNumber,
+        'phone_number': _phoneNumberController.text,
         'email': _inputedEmail,
         'time': _selectedTime.isEmpty ? null : _selectedTime,
         'message': _inputedMessage
@@ -280,46 +286,42 @@ class LegalizationScreenController extends ChangeNotifier {
           ? _setLegalizationRequestModalWindowState()
           : null;
     } else {
-      if (RegExp(r"(\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,6})")
-              .hasMatch(_inputedEmail!) &&
-          _inputedPhoneNumber!.contains("+48") &&
-          _inputedPhoneNumber!.length == 12) {
+      if (_inputedEmail == null) {
         _emailErrorState = false;
-        _errorPhoneNumberState = false;
-        _errorPhoneNumberText = null;
-        Map<String, String?> body = {
-          'city': _selectedCity,
-          'service': _selectedService,
-          'name': _inputedName,
-          'phone_number': _inputedPhoneNumber,
-          'email': _inputedEmail,
-          'time': _selectedTime.isEmpty ? null : _selectedTime,
-          'message': _inputedMessage
-        };
-        await ApiClient().createLegalizationRequest(body) == 201
-            ? _setLegalizationRequestModalWindowState()
-            : null;
+        _errorPhoneNumberState = true;
+        _errorPhoneNumberText = "Неправильний формат номера";
       } else {
+        if (_phoneNumberController.text.length != 15) {
+          _errorPhoneNumberState = true;
+          _errorPhoneNumberText = "Неправильний формат номера";
+        } else {
+          _errorPhoneNumberState = false;
+          _errorPhoneNumberText = null;
+        }
         if (RegExp(r"(\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,6})")
             .hasMatch(_inputedEmail!)) {
           _emailErrorState = false;
         } else {
           _emailErrorState = true;
         }
-        if (_inputedPhoneNumber!.length == 12 &&
-            _inputedPhoneNumber!.contains("+48")) {
+        if (_phoneNumberController.text.length == 15 &&
+            RegExp(r"(\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,6})")
+                .hasMatch(_inputedEmail!)) {
+          _emailErrorState = false;
           _errorPhoneNumberState = false;
           _errorPhoneNumberText = null;
-        } else {
-          if (_inputedPhoneNumber!.length < 12) {
-            _errorPhoneNumberState = true;
-            _errorPhoneNumberText = "Неправильно вказаний номер";
-          } else {
-            if (_inputedPhoneNumber!.contains("+48") == false) {
-              _errorPhoneNumberState = true;
-              _errorPhoneNumberText = "Вкажіть код Польщі (+48)";
-            }
-          }
+          Map<String, String?> body = {
+            'city': _selectedCity,
+            'service': _selectedService,
+            'name': _inputedName,
+            'phone_number': _phoneNumberController.text,
+            'email': _inputedEmail,
+            'time': _selectedTime.isEmpty ? null : _selectedTime,
+            'message': _inputedMessage
+          };
+          await ApiClient().createLegalizationRequest(body) == 201
+              ? _setLegalizationRequestModalWindowState()
+              : null;
         }
       }
     }

@@ -86,7 +86,7 @@ class WorkSelectCityScreen extends StatelessWidget {
                     child: InkWell(
                       onTap: () => context
                           .read<WorkScreenController>()
-                          .setSelectCityScreenState(),
+                          .setSelectCityScreenState(context),
                       child: Icon(
                         Icons.arrow_back,
                         size: 24.0.w,

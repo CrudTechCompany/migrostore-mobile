@@ -18,36 +18,39 @@ class WorkScreenController extends ChangeNotifier {
 
   // Name text field
 
-  String? _inputedName;
-  String? get inputedName => _inputedName;
-  void _onChangedInputedName(String value) {
-    value.isEmpty ? _inputedName = null : _inputedName = value;
-    notifyListeners();
-  }
+  final TextEditingController _nameController = TextEditingController();
+  TextEditingController get nameController => _nameController;
 
-  Function get onChangedInputedName => _onChangedInputedName;
+  // Surname text filed
 
-  // Surname text field
-
-  String? _inputedSurName;
-  String? get inputedSurName => _inputedSurName;
-  void _onChangedInputedSurName(String value) {
-    value.isEmpty ? _inputedSurName = null : _inputedSurName = value;
-    notifyListeners();
-  }
-
-  Function get onChangedInputedSurName => _onChangedInputedSurName;
+  final TextEditingController _surNameController = TextEditingController();
+  TextEditingController get surNameController => _surNameController;
 
   // Phone text field
 
-  String? _inputedPhoneNumber;
-  String? get inputedPhoneNumber => _inputedPhoneNumber;
-  void _onChangedInputedPhoneNumber(String value) {
-    value.isEmpty ? _inputedPhoneNumber = null : _inputedPhoneNumber = value;
+  final TextEditingController _phoneNumberController = TextEditingController();
+  TextEditingController get phoneNumberController => _phoneNumberController;
+
+  bool _phonePrefixState = false;
+  bool get phonePrefixState => _phonePrefixState;
+  void _onTapPhoneField() {
+    _phonePrefixState = true;
     notifyListeners();
   }
 
-  Function get onChangedInputedPhoneNumber => _onChangedInputedPhoneNumber;
+  Function get onTapPhoneField => _onTapPhoneField;
+
+  void _onTapOutSidePhoneField() {
+    if (_phoneNumberController.text.isEmpty) {
+      _phonePrefixState = false;
+    }
+    notifyListeners();
+  }
+
+  Function get onTapOutSidePhoneField => _onTapOutSidePhoneField;
+
+  bool _phoneNumberErrorFormatState = false;
+  bool get phoneNumberErrorFormatState => _phoneNumberErrorFormatState;
 
   // Select birthday date
 
@@ -82,6 +85,7 @@ class WorkScreenController extends ChangeNotifier {
               ? _selectedDate = "${_selectedDate!}-${value.month}"
               : _selectedDate = "${_selectedDate!}-0${value.month}";
           _selectedDate = "${_selectedDate!}-${value.year}";
+          _setSendButtonState();
           notifyListeners();
         }
       },
@@ -92,14 +96,11 @@ class WorkScreenController extends ChangeNotifier {
 
   // Email text field
 
-  String? _inputedEmail;
-  String? get inputedEmail => _inputedEmail;
-  void _onChangedInputedEmail(String value) {
-    value.isEmpty ? _inputedEmail = null : _inputedEmail = value;
-    notifyListeners();
-  }
+  final TextEditingController _emailController = TextEditingController();
+  TextEditingController get emailController => _emailController;
 
-  Function get onChangedInputedEmail => _onChangedInputedEmail;
+  bool _emailErrorFormatState = false;
+  bool get emailErrorFormatState => _emailErrorFormatState;
 
   // State dropdown button
 
@@ -110,6 +111,7 @@ class WorkScreenController extends ChangeNotifier {
       return;
     } else {
       _selectedState = value;
+      _setSendButtonState();
       notifyListeners();
     }
   }
@@ -280,6 +282,7 @@ class WorkScreenController extends ChangeNotifier {
       return;
     } else {
       _selectedEntry = value;
+      _setSendButtonState();
       notifyListeners();
     }
   }
@@ -332,7 +335,9 @@ class WorkScreenController extends ChangeNotifier {
   bool get selectCityScreenState => _selectCityScreenState;
   final Map<String, bool> _cityList = {};
   Map<String, bool> get cityList => _cityList;
-  void _setSelectCityScreenState() async {
+  void _setSelectCityScreenState(BuildContext context) async {
+    FocusScope.of(context).requestFocus(FocusNode());
+    _onTapOutSidePhoneField();
     if (_selectCityScreenState) {
       _selectCityScreenState = !_selectCityScreenState;
     } else {
@@ -386,18 +391,6 @@ class WorkScreenController extends ChangeNotifier {
 
   final List<DropdownMenuItem<String>> _levelList = [
     DropdownMenuItem(
-      value: "Elementary",
-      child: Text(
-        "Початковий/Елементарний",
-        style: GoogleFonts.roboto(
-          fontSize: 16.0.sp,
-          fontWeight: FontWeight.w400,
-          fontStyle: FontStyle.normal,
-          color: const Color.fromARGB(255, 24, 24, 24),
-        ),
-      ),
-    ),
-    DropdownMenuItem(
       value: "A1",
       child: Text(
         "A1",
@@ -413,18 +406,6 @@ class WorkScreenController extends ChangeNotifier {
       value: "A2",
       child: Text(
         "A2",
-        style: GoogleFonts.roboto(
-          fontSize: 16.0.sp,
-          fontWeight: FontWeight.w400,
-          fontStyle: FontStyle.normal,
-          color: const Color.fromARGB(255, 24, 24, 24),
-        ),
-      ),
-    ),
-    DropdownMenuItem(
-      value: "Intermediate",
-      child: Text(
-        "Cередній",
         style: GoogleFonts.roboto(
           fontSize: 16.0.sp,
           fontWeight: FontWeight.w400,
@@ -457,14 +438,51 @@ class WorkScreenController extends ChangeNotifier {
         ),
       ),
     ),
+    DropdownMenuItem(
+      value: "C1",
+      child: Text(
+        "C1",
+        style: GoogleFonts.roboto(
+          fontSize: 16.0.sp,
+          fontWeight: FontWeight.w400,
+          fontStyle: FontStyle.normal,
+          color: const Color.fromARGB(255, 24, 24, 24),
+        ),
+      ),
+    ),
   ];
   List<DropdownMenuItem<String>> get levelList => _levelList;
+
+  void _onChangedPolishOrEnglishLevel(String type, String? value) {
+    if (value == null) {
+      return;
+    } else {
+      switch (type) {
+        case "polish":
+          {
+            _selectedPolishLevel = value;
+            break;
+          }
+        case "english":
+          {
+            _selectedEnglishLevel = value;
+            break;
+          }
+      }
+      _setSendButtonState();
+      notifyListeners();
+    }
+  }
+
+  Function get onChangedPolishOrEnglishLevel => _onChangedPolishOrEnglishLevel;
 
   // Select skill screen
 
   bool _selectSkillScreenState = false;
   bool get selectSkillScreenState => _selectSkillScreenState;
-  void _setSelectSkillScreenState() async {
+  void _setSelectSkillScreenState(BuildContext context) async {
+    FocusScope.of(context).requestFocus(FocusNode());
+    _onTapOutSidePhoneField();
     if (_selectSkillScreenState) {
       _selectSkillScreenState = !_selectSkillScreenState;
     } else {
@@ -520,4 +538,50 @@ class WorkScreenController extends ChangeNotifier {
 
   Function get setSuccessfullyModalWindowState =>
       _setSuccessfullyModalWindowState;
+
+  // Send button state
+
+  bool _sendButtonState = false;
+  bool get sendButtonState => _sendButtonState;
+  void _setSendButtonState() {
+    if (_nameController.text.isNotEmpty &&
+        _surNameController.text.isNotEmpty &&
+        _phoneNumberController.text.isNotEmpty &&
+        _selectedDate != null &&
+        _emailController.text.isNotEmpty &&
+        _selectedState != null &&
+        _selectedEntry != null &&
+        _selectedPolishLevel != null &&
+        _selectedEnglishLevel != null) {
+      _sendButtonState = true;
+    } else {
+      _sendButtonState = false;
+    }
+    notifyListeners();
+  }
+
+  Function get setSendButtonState => _setSendButtonState;
+
+  void _onClickSendButton() {
+    _phoneNumberController.text.length == 9
+        ? _phoneNumberErrorFormatState = false
+        : _phoneNumberErrorFormatState = true;
+    RegExp(r"(\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,6})").hasMatch(_emailController.text)
+        ? _emailErrorFormatState = false
+        : _emailErrorFormatState = true;
+    if (!_phoneNumberErrorFormatState && !_emailErrorFormatState) {
+      _setSuccessfullyModalWindowState();
+    } else {
+      notifyListeners();
+      _scrollController.animateTo(0,
+          duration: const Duration(milliseconds: 200), curve: Curves.linear);
+    }
+  }
+
+  Function get onClickSendButton => _onClickSendButton;
+
+  // Scroll controller
+
+  final ScrollController _scrollController = ScrollController();
+  ScrollController get scrollController => _scrollController;
 }

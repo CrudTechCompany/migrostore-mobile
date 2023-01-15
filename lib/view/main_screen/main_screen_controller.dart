@@ -97,4 +97,15 @@ class MainScreenController extends ChangeNotifier {
   }
 
   Function get setIsUserAuthorized => _setIsUserAuthorized;
+
+  // Resume screen
+
+  bool _resumeScreenState = false;
+  bool get resumeScreenState => _resumeScreenState;
+  void _setResumeScreenState() {
+    _resumeScreenState = !_resumeScreenState;
+    notifyListeners();
+  }
+
+  Function get setResumeScreenState => _setResumeScreenState;
 }

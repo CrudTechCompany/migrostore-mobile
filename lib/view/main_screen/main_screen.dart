@@ -11,6 +11,8 @@ import 'package:migrostore/view/work_screen/work_screen_controller.dart';
 import 'package:provider/provider.dart';
 import '../help_screen/help_screen.dart';
 import '../help_screen/help_screen_controller.dart';
+import '../resume_screen/resume_screen.dart';
+import '../resume_screen/resume_screen_controller.dart';
 
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
@@ -99,6 +101,12 @@ class MainScreen extends StatelessWidget {
             ? ChangeNotifierProvider(
                 create: (_) => WorkScreenController(),
                 child: const WorkScreen(),
+              )
+            : const SizedBox.shrink(),
+        context.watch<MainScreenController>().resumeScreenState
+            ? ChangeNotifierProvider(
+                create: (_) => ResumeScreenController(),
+                child: const ResumeScreen(),
               )
             : const SizedBox.shrink(),
         context.watch<MainScreenController>().isUserAuthorazed

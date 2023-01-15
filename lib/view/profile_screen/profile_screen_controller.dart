@@ -78,6 +78,7 @@ class ProfileScreenController extends ChangeNotifier {
   Function get setSelectedBirthDay => _setSelectedBirthDay;
 
   //Email text field
+
   final TextEditingController _emailController = TextEditingController();
   TextEditingController get emailController => _emailController;
   String? _inputedEmail;
@@ -419,9 +420,13 @@ class ProfileScreenController extends ChangeNotifier {
   Map<String, bool> get cityList => _cityList;
 
   Future<void> _setCityList() async {
-    List<String> response = await ApiClient().getCitiesList();
-    for (String e in response) {
-      _cityList[e] = false;
+    try {
+      List<String> response = await ApiClient().getCitiesList();
+      for (String e in response) {
+        _cityList[e] = false;
+      }
+    } catch (e) {
+      return;
     }
   }
 
@@ -484,11 +489,15 @@ class ProfileScreenController extends ChangeNotifier {
   Map<String, bool> get skillList => _skillList;
 
   Future<void> _getSkillList() async {
-    List<String> response = await ApiClient().getSkillsList();
-    for (String item in response) {
-      _skillList[item] = false;
+    try {
+      List<String> response = await ApiClient().getSkillsList();
+      for (String item in response) {
+        _skillList[item] = false;
+      }
+      notifyListeners();
+    } catch (e) {
+      return;
     }
-    notifyListeners();
   }
 
   void _onClickSkillListItem(int index) {

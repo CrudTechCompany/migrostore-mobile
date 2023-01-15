@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -10,7 +9,6 @@ import 'package:migrostore/view/modal_window/work_initial_modal_window.dart';
 import 'package:migrostore/view/work_screen/components/work_select_city_screen.dart';
 import 'package:migrostore/view/work_screen/work_screen_controller.dart';
 import 'package:provider/provider.dart';
-
 import 'components/work_select_skill_screen.dart';
 
 class WorkScreen extends StatelessWidget {
@@ -26,6 +24,7 @@ class WorkScreen extends StatelessWidget {
             width: 375.0.w,
             height: 812.0.h,
             child: SingleChildScrollView(
+              controller: context.read<WorkScreenController>().scrollController,
               physics: const ClampingScrollPhysics(),
               padding: EdgeInsets.only(
                 top: 117.0.h,
@@ -62,9 +61,14 @@ class WorkScreen extends StatelessWidget {
                   SizedBox(
                     height: 43.0.w,
                     child: TextField(
+                      controller:
+                          context.read<WorkScreenController>().nameController,
+                      onTap: () => context
+                          .read<WorkScreenController>()
+                          .onTapOutSidePhoneField(),
                       onChanged: (value) => context
                           .read<WorkScreenController>()
-                          .onChangedInputedName(value),
+                          .setSendButtonState(),
                       cursorColor: const Color.fromARGB(255, 24, 24, 24),
                       cursorHeight: 16.0.sp,
                       style: GoogleFonts.roboto(
@@ -88,9 +92,10 @@ class WorkScreen extends StatelessWidget {
                           borderSide: BorderSide(
                             width: 1.0.w,
                             color: context
-                                        .watch<WorkScreenController>()
-                                        .inputedName ==
-                                    null
+                                    .watch<WorkScreenController>()
+                                    .nameController
+                                    .text
+                                    .isEmpty
                                 ? const Color.fromARGB(255, 180, 180, 180)
                                 : const Color.fromARGB(255, 24, 24, 24),
                           ),
@@ -135,9 +140,15 @@ class WorkScreen extends StatelessWidget {
                   SizedBox(
                     height: 43.0.w,
                     child: TextField(
+                      controller: context
+                          .read<WorkScreenController>()
+                          .surNameController,
+                      onTap: () => context
+                          .read<WorkScreenController>()
+                          .onTapOutSidePhoneField(),
                       onChanged: (value) => context
                           .read<WorkScreenController>()
-                          .onChangedInputedSurName(value),
+                          .setSendButtonState(),
                       cursorColor: const Color.fromARGB(255, 24, 24, 24),
                       cursorHeight: 16.0.sp,
                       style: GoogleFonts.roboto(
@@ -161,9 +172,10 @@ class WorkScreen extends StatelessWidget {
                           borderSide: BorderSide(
                             width: 1.0.w,
                             color: context
-                                        .watch<WorkScreenController>()
-                                        .inputedSurName ==
-                                    null
+                                    .watch<WorkScreenController>()
+                                    .surNameController
+                                    .text
+                                    .isEmpty
                                 ? const Color.fromARGB(255, 180, 180, 180)
                                 : const Color.fromARGB(255, 24, 24, 24),
                           ),
@@ -208,9 +220,16 @@ class WorkScreen extends StatelessWidget {
                   SizedBox(
                     height: 43.0.w,
                     child: TextField(
+                      maxLength: 9,
+                      onTap: () => context
+                          .read<WorkScreenController>()
+                          .onTapPhoneField(),
+                      controller: context
+                          .read<WorkScreenController>()
+                          .phoneNumberController,
                       onChanged: (value) => context
                           .read<WorkScreenController>()
-                          .onChangedInputedPhoneNumber(value),
+                          .setSendButtonState(),
                       cursorColor: const Color.fromARGB(255, 24, 24, 24),
                       cursorHeight: 16.0.sp,
                       style: GoogleFonts.roboto(
@@ -220,6 +239,20 @@ class WorkScreen extends StatelessWidget {
                         color: const Color.fromARGB(255, 24, 24, 24),
                       ),
                       decoration: InputDecoration(
+                        counterText: "",
+                        prefix: context
+                                .watch<WorkScreenController>()
+                                .phonePrefixState
+                            ? Text(
+                                "+48 ",
+                                style: GoogleFonts.roboto(
+                                  fontSize: 16.0.sp,
+                                  fontWeight: FontWeight.w400,
+                                  fontStyle: FontStyle.normal,
+                                  color: const Color.fromARGB(255, 24, 24, 24),
+                                ),
+                              )
+                            : null,
                         filled: true,
                         fillColor: const Color.fromARGB(255, 255, 255, 255),
                         contentPadding: EdgeInsets.zero,
@@ -234,9 +267,10 @@ class WorkScreen extends StatelessWidget {
                           borderSide: BorderSide(
                             width: 1.0.w,
                             color: context
-                                        .watch<WorkScreenController>()
-                                        .inputedPhoneNumber ==
-                                    null
+                                    .watch<WorkScreenController>()
+                                    .phoneNumberController
+                                    .text
+                                    .isEmpty
                                 ? const Color.fromARGB(255, 180, 180, 180)
                                 : const Color.fromARGB(255, 24, 24, 24),
                           ),
@@ -250,6 +284,25 @@ class WorkScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  context
+                          .watch<WorkScreenController>()
+                          .phoneNumberErrorFormatState
+                      ? Padding(
+                          padding: EdgeInsets.only(top: 5.0.h),
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              "Неправильний формат номера",
+                              style: GoogleFonts.roboto(
+                                fontSize: 12.0.sp,
+                                fontWeight: FontWeight.w400,
+                                fontStyle: FontStyle.normal,
+                                color: const Color.fromARGB(255, 255, 0, 0),
+                              ),
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
                   Padding(
                     padding: EdgeInsets.only(top: 20.0.h),
                     child: Row(
@@ -369,9 +422,11 @@ class WorkScreen extends StatelessWidget {
                   SizedBox(
                     height: 43.0.w,
                     child: TextField(
+                      controller:
+                          context.read<WorkScreenController>().emailController,
                       onChanged: (value) => context
                           .read<WorkScreenController>()
-                          .onChangedInputedEmail(value),
+                          .setSendButtonState(),
                       cursorColor: const Color.fromARGB(255, 24, 24, 24),
                       cursorHeight: 16.0.sp,
                       style: GoogleFonts.roboto(
@@ -395,9 +450,10 @@ class WorkScreen extends StatelessWidget {
                           borderSide: BorderSide(
                             width: 1.0.w,
                             color: context
-                                        .watch<WorkScreenController>()
-                                        .inputedPhoneNumber ==
-                                    null
+                                    .watch<WorkScreenController>()
+                                    .emailController
+                                    .text
+                                    .isEmpty
                                 ? const Color.fromARGB(255, 180, 180, 180)
                                 : const Color.fromARGB(255, 24, 24, 24),
                           ),
@@ -411,6 +467,23 @@ class WorkScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  context.watch<WorkScreenController>().emailErrorFormatState
+                      ? Padding(
+                          padding: EdgeInsets.only(top: 5.0.h),
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              "Неправильний формат пошти",
+                              style: GoogleFonts.roboto(
+                                fontSize: 12.0.sp,
+                                fontWeight: FontWeight.w400,
+                                fontStyle: FontStyle.normal,
+                                color: const Color.fromARGB(255, 255, 0, 0),
+                              ),
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
                   Padding(
                     padding: EdgeInsets.only(top: 20.0.h),
                     child: Row(
@@ -440,6 +513,9 @@ class WorkScreen extends StatelessWidget {
                     ),
                   ),
                   DropdownButton2<String>(
+                    onMenuStateChange: (isOpen) => context
+                        .read<WorkScreenController>()
+                        .onTapOutSidePhoneField(),
                     buttonWidth: double.infinity,
                     isExpanded: true,
                     underline: ColoredBox(
@@ -497,6 +573,9 @@ class WorkScreen extends StatelessWidget {
                     ),
                   ),
                   DropdownButton2<String>(
+                    onMenuStateChange: (isOpen) => context
+                        .read<WorkScreenController>()
+                        .onTapOutSidePhoneField(),
                     buttonWidth: double.infinity,
                     isExpanded: true,
                     underline: ColoredBox(
@@ -556,7 +635,7 @@ class WorkScreen extends StatelessWidget {
                   InkWell(
                     onTap: () => context
                         .read<WorkScreenController>()
-                        .setSelectCityScreenState(),
+                        .setSelectCityScreenState(context),
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         color: const Color.fromARGB(255, 255, 255, 255),
@@ -624,6 +703,9 @@ class WorkScreen extends StatelessWidget {
                     ),
                   ),
                   DropdownButton2<String>(
+                    onMenuStateChange: (isOpen) => context
+                        .read<WorkScreenController>()
+                        .onTapOutSidePhoneField(),
                     buttonWidth: double.infinity,
                     isExpanded: true,
                     hint: Text(
@@ -639,7 +721,9 @@ class WorkScreen extends StatelessWidget {
                         .watch<WorkScreenController>()
                         .selectedPolishLevel,
                     items: context.read<WorkScreenController>().levelList,
-                    onChanged: (value) {},
+                    onChanged: (value) => context
+                        .read<WorkScreenController>()
+                        .onChangedPolishOrEnglishLevel("polish", value),
                   ),
                   Padding(
                     padding: EdgeInsets.only(top: 20.0.h),
@@ -670,6 +754,9 @@ class WorkScreen extends StatelessWidget {
                     ),
                   ),
                   DropdownButton2<String>(
+                    onMenuStateChange: (isOpen) => context
+                        .read<WorkScreenController>()
+                        .onTapOutSidePhoneField(),
                     buttonWidth: double.infinity,
                     isExpanded: true,
                     hint: Text(
@@ -683,9 +770,11 @@ class WorkScreen extends StatelessWidget {
                     ),
                     value: context
                         .watch<WorkScreenController>()
-                        .selectedPolishLevel,
+                        .selectedEnglishLevel,
                     items: context.read<WorkScreenController>().levelList,
-                    onChanged: (value) {},
+                    onChanged: (value) => context
+                        .read<WorkScreenController>()
+                        .onChangedPolishOrEnglishLevel("english", value),
                   ),
                   Padding(
                     padding: EdgeInsets.only(top: 20.0.h),
@@ -718,7 +807,7 @@ class WorkScreen extends StatelessWidget {
                   InkWell(
                     onTap: () => context
                         .read<WorkScreenController>()
-                        .setSelectSkillScreenState(),
+                        .setSelectSkillScreenState(context),
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         color: const Color.fromARGB(255, 255, 255, 255),
@@ -760,13 +849,20 @@ class WorkScreen extends StatelessWidget {
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 40.0.h),
                     child: InkWell(
-                      onTap: () => context
-                          .read<WorkScreenController>()
-                          .setSuccessfullyModalWindowState(),
+                      onTap:
+                          context.watch<WorkScreenController>().sendButtonState
+                              ? () => context
+                                  .read<WorkScreenController>()
+                                  .onClickSendButton()
+                              : null,
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(30.0.r),
-                          color: const Color.fromARGB(255, 24, 24, 24),
+                          color: context
+                                  .watch<WorkScreenController>()
+                                  .sendButtonState
+                              ? const Color.fromARGB(255, 24, 24, 24)
+                              : const Color.fromARGB(255, 180, 180, 180),
                         ),
                         child: SizedBox(
                           width: 345.0.w,

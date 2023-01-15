@@ -36,6 +36,12 @@ class MenuScreenController extends ChangeNotifier {
 
   void _onClickMenuItem(BuildContext context, int index) {
     switch (index) {
+      case 0:
+        {
+          Provider.of<MainScreenController>(context, listen: false)
+              .setResumeScreenState();
+          break;
+        }
       case 1:
         {
           Provider.of<MainScreenController>(context, listen: false)
