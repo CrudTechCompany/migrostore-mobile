@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:migrostore/view/auth_screen/auth_screen_controller.dart';
-import 'package:migrostore/view/check_code_screen/check_code_screen.dart';
+import 'package:migrostore/view/input_code_screen/input_code_screen.dart';
+import 'package:migrostore/view/input_code_screen/input_code_screen_controller.dart';
 import 'package:migrostore/view/sign_up_screen/sign_up_screen_controller.dart';
 import 'package:provider/provider.dart';
 
@@ -21,10 +22,7 @@ class SignUpScreen extends StatelessWidget {
             height: 812.0.h,
             child: SingleChildScrollView(
               physics: const ClampingScrollPhysics(),
-              padding: EdgeInsets.only(
-                left: 15.0.w,
-                right: 15.0.w,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 15.0.w),
               child: Column(
                 children: [
                   Padding(
@@ -75,8 +73,10 @@ class SignUpScreen extends StatelessWidget {
                     child: TextField(
                       onChanged: (value) => context
                           .read<SignUpScreenController>()
-                          .onChangedInputedEmail(value),
-                      keyboardType: TextInputType.emailAddress,
+                          .setSendCodeButtonState(),
+                      controller: context
+                          .read<SignUpScreenController>()
+                          .emailController,
                       cursorColor: const Color.fromARGB(255, 24, 24, 24),
                       cursorHeight: 16.0.sp,
                       style: GoogleFonts.roboto(
@@ -85,6 +85,7 @@ class SignUpScreen extends StatelessWidget {
                         fontStyle: FontStyle.normal,
                         color: const Color.fromARGB(255, 24, 24, 24),
                       ),
+                      keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: const Color.fromARGB(255, 255, 255, 255),
@@ -101,38 +102,31 @@ class SignUpScreen extends StatelessWidget {
                             width: 1.0.w,
                             color: context
                                     .watch<SignUpScreenController>()
-                                    .emailErrorState
-                                ? const Color.fromARGB(255, 255, 0, 0)
-                                : context
-                                            .watch<SignUpScreenController>()
-                                            .inputedEmail !=
-                                        null
-                                    ? const Color.fromARGB(255, 24, 24, 24)
-                                    : const Color.fromARGB(255, 180, 180, 180),
+                                    .emailController
+                                    .text
+                                    .isEmpty
+                                ? const Color.fromARGB(255, 180, 180, 180)
+                                : const Color.fromARGB(255, 24, 24, 24),
                           ),
                         ),
                         focusedBorder: UnderlineInputBorder(
                           borderSide: BorderSide(
                             width: 1.0.w,
-                            color: context
-                                    .watch<SignUpScreenController>()
-                                    .emailErrorState
-                                ? const Color.fromARGB(255, 255, 0, 0)
-                                : const Color.fromARGB(255, 24, 24, 24),
+                            color: const Color.fromARGB(255, 24, 24, 24),
                           ),
                         ),
                       ),
                     ),
                   ),
-                  context.watch<SignUpScreenController>().emailErrorState
-                      ? Align(
-                          alignment: Alignment.centerRight,
-                          child: Padding(
-                            padding: EdgeInsets.only(top: 5.0.h),
+                  context.watch<SignUpScreenController>().invalidEmailState
+                      ? Padding(
+                          padding: EdgeInsets.only(top: 5.0.h),
+                          child: Align(
+                            alignment: Alignment.centerRight,
                             child: Text(
                               context
                                   .read<SignUpScreenController>()
-                                  .emailErrorText,
+                                  .invalidEmailMessage!,
                               style: GoogleFonts.roboto(
                                 fontSize: 12.0.sp,
                                 fontWeight: FontWeight.w400,
@@ -176,71 +170,88 @@ class SignUpScreen extends StatelessWidget {
                   ),
                   SizedBox(
                     height: 43.0.w,
-                    child: TextField(
-                      controller: context
-                          .read<SignUpScreenController>()
-                          .passwordController,
-                      onChanged: (value) => context
-                          .read<SignUpScreenController>()
-                          .onChangedInputedPassword(value),
-                      maxLength: 6,
-                      cursorColor: const Color.fromARGB(255, 24, 24, 24),
-                      cursorHeight: 16.0.sp,
-                      style: GoogleFonts.roboto(
-                        fontSize: 16.0.sp,
-                        fontWeight: FontWeight.w400,
-                        fontStyle: FontStyle.normal,
-                        color: const Color.fromARGB(255, 24, 24, 24),
-                      ),
-                      decoration: InputDecoration(
-                        counterText: "",
-                        contentPadding: EdgeInsets.zero,
-                        filled: true,
-                        fillColor: const Color.fromARGB(255, 255, 255, 255),
-                        hintText: "Введіть пароль (мінімум 6 символів)",
-                        hintStyle: GoogleFonts.roboto(
-                          fontSize: 16.0.sp,
-                          fontWeight: FontWeight.w400,
-                          fontStyle: FontStyle.normal,
-                          color: const Color.fromARGB(255, 180, 180, 180),
-                        ),
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            width: 1.0.w,
-                            color: context
-                                    .watch<SignUpScreenController>()
-                                    .passwordErrorState
-                                ? const Color.fromARGB(255, 255, 0, 0)
-                                : context
-                                            .watch<SignUpScreenController>()
-                                            .inputedPassword !=
-                                        null
-                                    ? const Color.fromARGB(255, 24, 24, 24)
-                                    : const Color.fromARGB(255, 180, 180, 180),
+                    child: Stack(
+                      alignment: Alignment.centerRight,
+                      children: [
+                        TextField(
+                          obscureText: context
+                              .watch<SignUpScreenController>()
+                              .obscurePasswordState,
+                          onChanged: (value) => context
+                              .read<SignUpScreenController>()
+                              .setSendCodeButtonState(),
+                          controller: context
+                              .read<SignUpScreenController>()
+                              .passwordController,
+                          cursorColor: const Color.fromARGB(255, 24, 24, 24),
+                          cursorHeight: 16.0.sp,
+                          style: GoogleFonts.roboto(
+                            fontSize: 16.0.sp,
+                            fontWeight: FontWeight.w400,
+                            fontStyle: FontStyle.normal,
+                            color: const Color.fromARGB(255, 24, 24, 24),
+                          ),
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: InputDecoration(
+                            counterText: "",
+                            filled: true,
+                            fillColor: const Color.fromARGB(255, 255, 255, 255),
+                            contentPadding: EdgeInsets.zero,
+                            hintText: "Введіть пароль (мінімум 6 символів)",
+                            hintStyle: GoogleFonts.roboto(
+                              fontSize: 16.0.sp,
+                              fontWeight: FontWeight.w400,
+                              fontStyle: FontStyle.normal,
+                              color: const Color.fromARGB(255, 180, 180, 180),
+                            ),
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                width: 1.0.w,
+                                color: context
+                                        .watch<SignUpScreenController>()
+                                        .passwordController
+                                        .text
+                                        .isEmpty
+                                    ? const Color.fromARGB(255, 180, 180, 180)
+                                    : const Color.fromARGB(255, 24, 24, 24),
+                              ),
+                            ),
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                width: 1.0.w,
+                                color: const Color.fromARGB(255, 24, 24, 24),
+                              ),
+                            ),
                           ),
                         ),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            width: 1.0.w,
-                            color: context
+                        InkWell(
+                          onTap: () => context
+                              .read<SignUpScreenController>()
+                              .setObscurePasswordState(),
+                          overlayColor:
+                              MaterialStateProperty.all(Colors.transparent),
+                          child: Icon(
+                            context
                                     .watch<SignUpScreenController>()
-                                    .passwordErrorState
-                                ? const Color.fromARGB(255, 255, 0, 0)
-                                : const Color.fromARGB(255, 24, 24, 24),
+                                    .obscurePasswordState
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            size: 20.0.w,
+                            color: const Color.fromARGB(255, 24, 24, 24),
                           ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
-                  context.watch<SignUpScreenController>().passwordErrorState
-                      ? Align(
-                          alignment: Alignment.centerRight,
-                          child: Padding(
-                            padding: EdgeInsets.only(top: 5.0.h),
+                  context.watch<SignUpScreenController>().invalidPasswordState
+                      ? Padding(
+                          padding: EdgeInsets.only(top: 5.0.h),
+                          child: Align(
+                            alignment: Alignment.centerRight,
                             child: Text(
                               context
                                   .read<SignUpScreenController>()
-                                  .passwordErrorText,
+                                  .invalidPasswordMessage!,
                               style: GoogleFonts.roboto(
                                 fontSize: 12.0.sp,
                                 fontWeight: FontWeight.w400,
@@ -284,73 +295,88 @@ class SignUpScreen extends StatelessWidget {
                   ),
                   SizedBox(
                     height: 43.0.w,
-                    child: TextField(
-                      controller: context
-                          .read<SignUpScreenController>()
-                          .confirmPasswordController,
-                      onChanged: (value) => context
-                          .read<SignUpScreenController>()
-                          .onChangedInputedConfirmPassword(value),
-                      maxLength: 6,
-                      cursorColor: const Color.fromARGB(255, 24, 24, 24),
-                      cursorHeight: 16.0.sp,
-                      style: GoogleFonts.roboto(
-                        fontSize: 16.0.sp,
-                        fontWeight: FontWeight.w400,
-                        fontStyle: FontStyle.normal,
-                        color: const Color.fromARGB(255, 24, 24, 24),
-                      ),
-                      decoration: InputDecoration(
-                        counterText: "",
-                        contentPadding: EdgeInsets.zero,
-                        filled: true,
-                        fillColor: const Color.fromARGB(255, 255, 255, 255),
-                        hintText: "Введіть пароль повторно",
-                        hintStyle: GoogleFonts.roboto(
-                          fontSize: 16.0.sp,
-                          fontWeight: FontWeight.w400,
-                          fontStyle: FontStyle.normal,
-                          color: const Color.fromARGB(255, 180, 180, 180),
-                        ),
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            width: 1.0.w,
-                            color: context
-                                    .watch<SignUpScreenController>()
-                                    .confirmPasswordErrorState
-                                ? const Color.fromARGB(255, 255, 0, 0)
-                                : context
-                                            .watch<SignUpScreenController>()
-                                            .inputedConfirmPassword !=
-                                        null
-                                    ? const Color.fromARGB(255, 24, 24, 24)
-                                    : const Color.fromARGB(255, 180, 180, 180),
+                    child: Stack(
+                      alignment: Alignment.centerRight,
+                      children: [
+                        TextField(
+                          obscureText: context
+                              .watch<SignUpScreenController>()
+                              .obscureConfirmPasswordState,
+                          onChanged: (value) => context
+                              .read<SignUpScreenController>()
+                              .setSendCodeButtonState(),
+                          controller: context
+                              .read<SignUpScreenController>()
+                              .confirmPasswordController,
+                          cursorColor: const Color.fromARGB(255, 24, 24, 24),
+                          cursorHeight: 16.0.sp,
+                          style: GoogleFonts.roboto(
+                            fontSize: 16.0.sp,
+                            fontWeight: FontWeight.w400,
+                            fontStyle: FontStyle.normal,
+                            color: const Color.fromARGB(255, 24, 24, 24),
+                          ),
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: InputDecoration(
+                            counterText: "",
+                            filled: true,
+                            fillColor: const Color.fromARGB(255, 255, 255, 255),
+                            contentPadding: EdgeInsets.zero,
+                            hintText: "Введіть пароль повторно",
+                            hintStyle: GoogleFonts.roboto(
+                              fontSize: 16.0.sp,
+                              fontWeight: FontWeight.w400,
+                              fontStyle: FontStyle.normal,
+                              color: const Color.fromARGB(255, 180, 180, 180),
+                            ),
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                width: 1.0.w,
+                                color: context
+                                        .watch<SignUpScreenController>()
+                                        .confirmPasswordController
+                                        .text
+                                        .isEmpty
+                                    ? const Color.fromARGB(255, 180, 180, 180)
+                                    : const Color.fromARGB(255, 24, 24, 24),
+                              ),
+                            ),
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                width: 1.0.w,
+                                color: const Color.fromARGB(255, 24, 24, 24),
+                              ),
+                            ),
                           ),
                         ),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            width: 1.0.w,
-                            color: context
+                        InkWell(
+                          onTap: () => context
+                              .read<SignUpScreenController>()
+                              .setObscureConfirmPasswordState(),
+                          child: Icon(
+                            context
                                     .watch<SignUpScreenController>()
-                                    .confirmPasswordErrorState
-                                ? const Color.fromARGB(255, 255, 0, 0)
-                                : const Color.fromARGB(255, 24, 24, 24),
+                                    .obscureConfirmPasswordState
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            size: 20.0.w,
+                            color: const Color.fromARGB(255, 24, 24, 24),
                           ),
-                        ),
-                      ),
+                        )
+                      ],
                     ),
                   ),
                   context
                           .watch<SignUpScreenController>()
-                          .confirmPasswordErrorState
-                      ? Align(
-                          alignment: Alignment.centerRight,
-                          child: Padding(
-                            padding: EdgeInsets.only(top: 5.0.h),
+                          .invalidConfirmPasswordState
+                      ? Padding(
+                          padding: EdgeInsets.only(top: 5.0.h),
+                          child: Align(
+                            alignment: Alignment.centerRight,
                             child: Text(
                               context
                                   .read<SignUpScreenController>()
-                                  .confirmPasswordErrorText,
+                                  .invalidConfirmPasswordMessage!,
                               style: GoogleFonts.roboto(
                                 fontSize: 12.0.sp,
                                 fontWeight: FontWeight.w400,
@@ -362,7 +388,7 @@ class SignUpScreen extends StatelessWidget {
                         )
                       : const SizedBox.shrink(),
                   Padding(
-                    padding: EdgeInsets.only(top: 50.0.h),
+                    padding: EdgeInsets.only(top: 64.0.h),
                     child: InkWell(
                       onTap: context
                               .watch<SignUpScreenController>()
@@ -371,9 +397,11 @@ class SignUpScreen extends StatelessWidget {
                               .read<SignUpScreenController>()
                               .onClickSendCodeButton()
                           : null,
+                      overlayColor:
+                          MaterialStateProperty.all(Colors.transparent),
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30.0.r),
+                          borderRadius: BorderRadius.circular(30.0.w),
                           color: context
                                   .watch<SignUpScreenController>()
                                   .sendCodeButtonState
@@ -399,7 +427,9 @@ class SignUpScreen extends StatelessWidget {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.only(top: 30.0.h),
+                    padding: EdgeInsets.only(
+                      top: 30.0.h,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -418,10 +448,10 @@ class SignUpScreen extends StatelessWidget {
                             onTap: () {
                               context
                                   .read<AuthScreenController>()
-                                  .setSignUpScreenState();
+                                  .setSignInScreenState();
                               context
                                   .read<AuthScreenController>()
-                                  .setSignInScreenState();
+                                  .setSignUpScreenState();
                             },
                             overlayColor:
                                 MaterialStateProperty.all(Colors.transparent),
@@ -463,8 +493,8 @@ class SignUpScreen extends StatelessWidget {
                       child: InkWell(
                         onTap: () {
                           FocusScope.of(context).requestFocus(FocusNode());
-                          context
-                              .read<AuthScreenController>()
+                          Provider.of<AuthScreenController>(context,
+                                  listen: false)
                               .setSignUpScreenState();
                         },
                         child: Icon(
@@ -480,7 +510,7 @@ class SignUpScreen extends StatelessWidget {
                       width: 60.0.w,
                       height: 43.0.w,
                       child: SvgPicture.asset(
-                        "assets/migrostore.svg",
+                        "assets/migrostore_header_logo.svg",
                         fit: BoxFit.fill,
                       ),
                     ),
@@ -490,8 +520,11 @@ class SignUpScreen extends StatelessWidget {
             ),
           ),
         ),
-        context.watch<SignUpScreenController>().checkCodeScreenState
-            ? const CheckCodeScreen()
+        context.watch<SignUpScreenController>().codeScreenState
+            ? ChangeNotifierProvider(
+                create: (_) => InputCodeScreenController(),
+                child: const InputCodeScreen(),
+              )
             : const SizedBox.shrink(),
       ],
     );

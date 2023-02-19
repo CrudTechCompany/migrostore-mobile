@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:migrostore/view/app_screen/app_screen_controller.dart';
 import 'package:migrostore/view/auth_screen/auth_screen_controller.dart';
-import 'package:migrostore/view/main_screen/main_screen_controller.dart';
 import 'package:migrostore/view/sign_in_screen/sign_in_screen.dart';
 import 'package:migrostore/view/sign_in_screen/sign_in_screen_controller.dart';
+import 'package:migrostore/view/sign_up_screen/sign_up_screen.dart';
+import 'package:migrostore/view/sign_up_screen/sign_up_screen_controller.dart';
 import 'package:provider/provider.dart';
-
-import '../sign_up_screen/sign_up_screen.dart';
-import '../sign_up_screen/sign_up_screen_controller.dart';
 
 class AuthScreen extends StatelessWidget {
   const AuthScreen({super.key});
@@ -24,49 +23,50 @@ class AuthScreen extends StatelessWidget {
             width: 375.0.w,
             height: 812.0.h,
             child: SingleChildScrollView(
-              physics: const ClampingScrollPhysics(),
               padding: EdgeInsets.symmetric(horizontal: 15.0.w),
+              physics: const ClampingScrollPhysics(),
               child: Column(
                 children: [
                   Padding(
-                    padding: EdgeInsets.only(top: 66.0.h),
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: InkWell(
-                        onTap: () => Provider.of<MainScreenController>(context,
-                                listen: false)
-                            .setIsUserAuthorized(),
-                        overlayColor:
-                            MaterialStateProperty.all(Colors.transparent),
-                        child: Icon(
-                          Icons.close,
-                          size: 24.0.w,
+                    padding: EdgeInsets.only(top: 54.0.h),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        InkWell(
+                          onTap: () => Provider.of<AppScreenController>(context,
+                                  listen: false)
+                              .setAuthScreenState(),
+                          child: Icon(
+                            Icons.close_outlined,
+                            size: 24.0.w,
+                            color: const Color.fromARGB(255, 24, 24, 24),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.only(top: 111.0.h),
+                    padding: EdgeInsets.only(top: 119.0.h),
                     child: SizedBox(
                       width: 160.0.w,
                       height: 114.0.w,
                       child: SvgPicture.asset(
-                        "assets/migrostore.svg",
+                        "assets/migrostore_auth_logo.svg",
                         fit: BoxFit.fill,
                       ),
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.only(
-                      top: 170.0.h,
-                    ),
+                    padding: EdgeInsets.only(top: 170.0.h),
                     child: InkWell(
                       onTap: () => context
                           .read<AuthScreenController>()
                           .setSignInScreenState(),
+                      overlayColor:
+                          MaterialStateProperty.all(Colors.transparent),
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(300.0.r),
+                          borderRadius: BorderRadius.circular(30.0.w),
                           color: const Color.fromARGB(255, 24, 24, 24),
                         ),
                         child: SizedBox(
@@ -78,8 +78,8 @@ class AuthScreen extends StatelessWidget {
                               style: GoogleFonts.roboto(
                                 fontSize: 18.0.sp,
                                 fontWeight: FontWeight.w500,
-                                color: const Color.fromARGB(255, 255, 255, 255),
                                 fontStyle: FontStyle.normal,
+                                color: const Color.fromARGB(255, 255, 255, 255),
                               ),
                             ),
                           ),
@@ -88,21 +88,21 @@ class AuthScreen extends StatelessWidget {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.only(
-                      top: 15.0.h,
-                    ),
+                    padding: EdgeInsets.only(top: 15.0.h),
                     child: InkWell(
                       onTap: () => context
                           .read<AuthScreenController>()
                           .setSignUpScreenState(),
+                      overlayColor:
+                          MaterialStateProperty.all(Colors.transparent),
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30.0.r),
                           border: Border.all(
-                            width: 1.0.w,
                             style: BorderStyle.solid,
+                            width: 1.0.w,
                             color: const Color.fromARGB(255, 24, 24, 24),
                           ),
+                          borderRadius: BorderRadius.circular(30.0.w),
                           color: const Color.fromARGB(255, 255, 255, 255),
                         ),
                         child: SizedBox(
@@ -125,74 +125,75 @@ class AuthScreen extends StatelessWidget {
                   ),
                   Padding(
                     padding: EdgeInsets.only(top: 50.0.h),
-                    child: SizedBox(
-                      width: 265.0.w,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            "Продовжуючи, ви погоджуєтесь із",
-                            style: GoogleFonts.roboto(
-                              fontSize: 14.0.sp,
-                              fontWeight: FontWeight.w400,
-                              fontStyle: FontStyle.normal,
-                              color: const Color.fromARGB(255, 180, 180, 180),
-                            ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Продовжуючи, ви погоджуєтесь із",
+                          style: GoogleFonts.roboto(
+                            fontSize: 14.0.sp,
+                            fontWeight: FontWeight.w400,
+                            fontStyle: FontStyle.normal,
+                            color: const Color.fromARGB(255, 180, 180, 180),
                           ),
-                          Padding(
-                            padding: EdgeInsets.only(top: 5.0.h),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                InkWell(
-                                  onTap: () => context
-                                      .read<AuthScreenController>()
-                                      .onClickPrivacyOrTermsLink("terms"),
-                                  child: Text(
-                                    "Загальними положеннями та умовами",
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.roboto(
-                                      fontSize: 14.0.sp,
-                                      fontWeight: FontWeight.w400,
-                                      fontStyle: FontStyle.normal,
-                                      color:
-                                          const Color.fromARGB(255, 24, 24, 24),
-                                    ),
-                                  ),
-                                ),
-                                Text(
-                                  " і",
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(top: 5.0.h),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              InkWell(
+                                onTap: () => context
+                                    .read<AuthScreenController>()
+                                    .onClickTermsOrPrivacy(context, "Terms"),
+                                overlayColor: MaterialStateProperty.all(
+                                    Colors.transparent),
+                                child: Text(
+                                  "Загальними положеннями та умовами",
                                   style: GoogleFonts.roboto(
+                                    decoration: TextDecoration.underline,
                                     fontSize: 14.0.sp,
                                     fontWeight: FontWeight.w400,
                                     fontStyle: FontStyle.normal,
-                                    color: const Color.fromARGB(
-                                        255, 180, 180, 180),
+                                    color:
+                                        const Color.fromARGB(255, 24, 24, 24),
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(top: 5.0.h),
-                            child: InkWell(
-                              onTap: () => context
-                                  .read<AuthScreenController>()
-                                  .onClickPrivacyOrTermsLink("policy"),
-                              child: Text(
-                                "Політикою конфіденційності",
-                                textAlign: TextAlign.center,
+                              ),
+                              Text(
+                                " та",
                                 style: GoogleFonts.roboto(
                                   fontSize: 14.0.sp,
                                   fontWeight: FontWeight.w400,
                                   fontStyle: FontStyle.normal,
-                                  color: const Color.fromARGB(255, 24, 24, 24),
+                                  color:
+                                      const Color.fromARGB(255, 180, 180, 180),
                                 ),
                               ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(top: 5.0.h),
+                          child: InkWell(
+                            onTap: () => context
+                                .read<AuthScreenController>()
+                                .onClickTermsOrPrivacy(context, "Privacy"),
+                            overlayColor:
+                                MaterialStateProperty.all(Colors.transparent),
+                            child: Text(
+                              "Політикою конфіденційності",
+                              style: GoogleFonts.roboto(
+                                decoration: TextDecoration.underline,
+                                fontSize: 14.0.sp,
+                                fontWeight: FontWeight.w400,
+                                fontStyle: FontStyle.normal,
+                                color: const Color.fromARGB(255, 24, 24, 24),
+                              ),
                             ),
-                          )
-                        ],
-                      ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

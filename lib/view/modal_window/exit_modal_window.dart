@@ -1,9 +1,10 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:migrostore/view/app_screen/app_screen_controller.dart';
+import 'package:hive/hive.dart';
+import 'package:migrostore/view/main_screen/main_screen_controller.dart';
+import 'package:migrostore/view/settings_screen/settings_screen_controller.dart';
 import 'package:provider/provider.dart';
 
 class ExitModalWindow extends StatelessWidget {
@@ -53,9 +54,14 @@ class ExitModalWindow extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         InkWell(
-                          onTap: () => Provider.of<AppScreenController>(context,
-                                  listen: false)
-                              .setExitModalWindowState(),
+                          onTap: () {
+                            context
+                                .read<SettingsScreenController>()
+                                .setExitWindowState(context);
+                            Provider.of<MainScreenController>(context,
+                                    listen: false)
+                                .setNavigationBarState();
+                          },
                           overlayColor:
                               MaterialStateProperty.all(Colors.transparent),
                           child: DecoratedBox(
@@ -86,7 +92,49 @@ class ExitModalWindow extends StatelessWidget {
                           ),
                         ),
                         InkWell(
-                          onTap: () => exit(0),
+                          onTap: () async {
+                            if (Hive.isBoxOpen("userInfo")) {
+                              await Hive.box("userInfo").put("userInfo", {
+                                "isOnboarded": false,
+                                "isAuthorized": false,
+                                "id": null,
+                                "firstName": "",
+                                "lastName": "",
+                                "email": "",
+                                "birthDate": "",
+                                "phoneNumber": "",
+                                "countryOfStay": "",
+                                "groundOfStay": "",
+                                "jobSearchCity": "",
+                                "polishLang": "",
+                                "engLang": "",
+                                "skills": "",
+                                "accessToken": "",
+                                "refreshToken": "",
+                              });
+                            } else {
+                              await Hive.openBox("userInfo");
+                              await Hive.box("userInfo").put("userInfo", {
+                                "isOnboarded": false,
+                                "isAuthorized": false,
+                                "id": null,
+                                "firstName": "",
+                                "lastName": "",
+                                "email": "",
+                                "birthDate": "",
+                                "phoneNumber": "",
+                                "countryOfStay": "",
+                                "groundOfStay": "",
+                                "jobSearchCity": "",
+                                "polishLang": "",
+                                "engLang": "",
+                                "skills": "",
+                                "accessToken": "",
+                                "refreshToken": "",
+                              });
+                            }
+                            exit(0);
+                          },
                           overlayColor:
                               MaterialStateProperty.all(Colors.transparent),
                           child: DecoratedBox(

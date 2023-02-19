@@ -2,10 +2,11 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:migrostore/view/legalization_data_screen/legalization_data_screen.dart';
+import 'package:migrostore/view/legalization_screen/legalization_data_screen.dart';
 import 'package:migrostore/view/legalization_screen/legalization_screen_controller.dart';
 import 'package:migrostore/view/main_screen/main_screen_controller.dart';
-import 'package:migrostore/view/modal_window/legalization_request_modal_window.dart';
+import 'package:migrostore/view/menu_screen/menu_screen_controller.dart';
+import 'package:migrostore/view/modal_window/successfully_legalization_modal_window.dart';
 import 'package:provider/provider.dart';
 
 class LegalizationScreen extends StatelessWidget {
@@ -83,7 +84,7 @@ class LegalizationScreen extends StatelessWidget {
                         ),
                       ),
                       items:
-                          context.read<LegalizationScreenController>().cities,
+                          context.read<LegalizationScreenController>().cityList,
                       onChanged: (value) {
                         context
                             .read<LegalizationScreenController>()
@@ -135,8 +136,9 @@ class LegalizationScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      items:
-                          context.read<LegalizationScreenController>().services,
+                      items: context
+                          .read<LegalizationScreenController>()
+                          .serviceList,
                       onChanged: (value) {
                         context
                             .read<LegalizationScreenController>()
@@ -145,7 +147,7 @@ class LegalizationScreen extends StatelessWidget {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.only(top: 257.0.h),
+                    padding: EdgeInsets.only(top: 217.0.h),
                     child: InkWell(
                       onTap: context
                               .watch<LegalizationScreenController>()
@@ -202,9 +204,14 @@ class LegalizationScreen extends StatelessWidget {
                   Align(
                     alignment: Alignment.bottomLeft,
                     child: InkWell(
-                      onTap: () => context
-                          .read<MainScreenController>()
-                          .setLegalizationScreenState(),
+                      onTap: () {
+                        context
+                            .read<MenuScreenController>()
+                            .setLegalizationScreenState();
+                        Provider.of<MainScreenController>(context,
+                                listen: false)
+                            .setNavigationBarState();
+                      },
                       child: Icon(
                         Icons.arrow_back,
                         size: 24.0.w,
@@ -236,7 +243,7 @@ class LegalizationScreen extends StatelessWidget {
         context
                 .watch<LegalizationScreenController>()
                 .legalizationRequestModalWindowState
-            ? const LegalizationRequestModalWindow()
+            ? const SuccessfullyLegalizationModalWindow()
             : const SizedBox.shrink(),
       ],
     );

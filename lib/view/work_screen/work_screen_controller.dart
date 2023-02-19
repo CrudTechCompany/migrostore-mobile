@@ -2,61 +2,40 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:migrostore/services/api_client/api_client.dart';
+import 'package:migrostore/service/migrostore_api.dart';
+import 'package:migrostore/view/menu_screen/menu_screen_controller.dart';
+import 'package:provider/provider.dart';
 
 class WorkScreenController extends ChangeNotifier {
-  // initial Modal window
+  // Scroll controller
 
-  bool _initialModalWindowState = true;
-  bool get initialModalWindowState => _initialModalWindowState;
-  void _setInitialModalWindowState() {
-    _initialModalWindowState = !_initialModalWindowState;
-    notifyListeners();
-  }
+  final ScrollController _scrollController = ScrollController();
+  ScrollController get scrollController => _scrollController;
 
-  Function get setInitialModalWindowState => _setInitialModalWindowState;
-
-  // Name text field
+  // Name field
 
   final TextEditingController _nameController = TextEditingController();
   TextEditingController get nameController => _nameController;
+  // Surname field
 
-  // Surname text filed
+  final TextEditingController _surnameController = TextEditingController();
+  TextEditingController get surnameController => _surnameController;
 
-  final TextEditingController _surNameController = TextEditingController();
-  TextEditingController get surNameController => _surNameController;
+  // Phone number field
+  final TextEditingController _phoneController = TextEditingController();
+  TextEditingController get phoneController => _phoneController;
 
-  // Phone text field
+  // Email field
 
-  final TextEditingController _phoneNumberController = TextEditingController();
-  TextEditingController get phoneNumberController => _phoneNumberController;
+  final TextEditingController _emailController = TextEditingController();
+  TextEditingController get emailController => _emailController;
 
-  bool _phonePrefixState = false;
-  bool get phonePrefixState => _phonePrefixState;
-  void _onTapPhoneField() {
-    _phonePrefixState = true;
-    notifyListeners();
-  }
+  // Select date field
 
-  Function get onTapPhoneField => _onTapPhoneField;
+  String? _selectedBirthDate;
+  String? get selectedBirthDate => _selectedBirthDate;
 
-  void _onTapOutSidePhoneField() {
-    if (_phoneNumberController.text.isEmpty) {
-      _phonePrefixState = false;
-    }
-    notifyListeners();
-  }
-
-  Function get onTapOutSidePhoneField => _onTapOutSidePhoneField;
-
-  bool _phoneNumberErrorFormatState = false;
-  bool get phoneNumberErrorFormatState => _phoneNumberErrorFormatState;
-
-  // Select birthday date
-
-  String? _selectedDate;
-  String? get selectedDate => _selectedDate;
-  void _setSelectedDate(BuildContext context) async {
+  void _onClickSelectDateField(BuildContext context) async {
     await showDatePicker(
       context: context,
       initialDate: DateTime(
@@ -77,14 +56,14 @@ class WorkScreenController extends ChangeNotifier {
         if (value == null) {
           return;
         } else {
-          _selectedDate = null;
+          _selectedBirthDate = null;
           value.day > 9
-              ? _selectedDate = value.day.toString()
-              : _selectedDate = "0${value.day}";
+              ? _selectedBirthDate = value.day.toString()
+              : _selectedBirthDate = "0${value.day}";
           value.month > 9
-              ? _selectedDate = "${_selectedDate!}-${value.month}"
-              : _selectedDate = "${_selectedDate!}-0${value.month}";
-          _selectedDate = "${_selectedDate!}-${value.year}";
+              ? _selectedBirthDate = "${_selectedBirthDate!}-${value.month}"
+              : _selectedBirthDate = "${_selectedBirthDate!}-0${value.month}";
+          _selectedBirthDate = "${_selectedBirthDate!}-${value.year}";
           _setSendButtonState();
           notifyListeners();
         }
@@ -92,22 +71,15 @@ class WorkScreenController extends ChangeNotifier {
     );
   }
 
-  Function get setSelectedDate => _setSelectedDate;
+  Function get onClickSelectDateField => _onClickSelectDateField;
 
-  // Email text field
-
-  final TextEditingController _emailController = TextEditingController();
-  TextEditingController get emailController => _emailController;
-
-  bool _emailErrorFormatState = false;
-  bool get emailErrorFormatState => _emailErrorFormatState;
-
-  // State dropdown button
+  // Select state field
 
   String? _selectedState;
   String? get selectedState => _selectedState;
-  void _onChangedSelectedState(String? value) {
+  void _onChangeSelectedState(String? value) {
     if (value == null) {
+      _setSendButtonState();
       return;
     } else {
       _selectedState = value;
@@ -116,7 +88,7 @@ class WorkScreenController extends ChangeNotifier {
     }
   }
 
-  Function get onChangedSelectedState => _onChangedSelectedState;
+  Function get onChangeSelectedState => _onChangeSelectedState;
 
   final List<DropdownMenuItem<String>> _stateList = [
     DropdownMenuItem<String>(
@@ -279,6 +251,7 @@ class WorkScreenController extends ChangeNotifier {
 
   void _onChangedSelectedEntry(String? value) {
     if (value == null) {
+      _setSendButtonState();
       return;
     } else {
       _selectedEntry = value;
@@ -328,58 +301,6 @@ class WorkScreenController extends ChangeNotifier {
     ),
   ];
   List<DropdownMenuItem<String>> get entryList => _entryList;
-
-  // Select city screen
-
-  bool _selectCityScreenState = false;
-  bool get selectCityScreenState => _selectCityScreenState;
-  final Map<String, bool> _cityList = {};
-  Map<String, bool> get cityList => _cityList;
-  void _setSelectCityScreenState(BuildContext context) async {
-    FocusScope.of(context).requestFocus(FocusNode());
-    _onTapOutSidePhoneField();
-    if (_selectCityScreenState) {
-      _selectCityScreenState = !_selectCityScreenState;
-    } else {
-      _selectCityScreenState = !_selectCityScreenState;
-      await ApiClient().getCitiesList().then(
-        (value) {
-          for (String element in value) {
-            _cityList[element] = false;
-          }
-        },
-      );
-    }
-    notifyListeners();
-  }
-
-  Function get setSelectCityScreenState => _setSelectCityScreenState;
-
-  // Select button state
-
-  bool _citySelectButtonState = false;
-  bool get citySelectButtonState => _citySelectButtonState;
-  void _setCitySelectButtonState() {
-    for (bool value in _cityList.values.toList()) {
-      if (value) {
-        _citySelectButtonState = true;
-        break;
-      } else {
-        _citySelectButtonState = false;
-      }
-    }
-  }
-
-  // Click city list item
-
-  void _onClickCityListItem(int index) {
-    _cityList.update(_cityList.keys.toList()[index],
-        (value) => !_cityList.values.toList()[index]);
-    _setCitySelectButtonState();
-    notifyListeners();
-  }
-
-  Function get onClickCityListItem => _onClickCityListItem;
 
   // English or polish level list
 
@@ -476,58 +397,95 @@ class WorkScreenController extends ChangeNotifier {
 
   Function get onChangedPolishOrEnglishLevel => _onChangedPolishOrEnglishLevel;
 
+  bool _sendButtonState = false;
+  bool get sentButtonState => _sendButtonState;
+  void _setSendButtonState() {
+    if (_nameController.text.isNotEmpty &&
+        _surnameController.text.isNotEmpty &&
+        _phoneController.text.isNotEmpty &&
+        _selectedBirthDate != null &&
+        _emailController.text.isNotEmpty &&
+        _selectedState != null &&
+        _selectedEntry != null &&
+        _selectedCity != null &&
+        _selectedPolishLevel != null &&
+        _selectedEnglishLevel != null &&
+        _selectedSkill != null) {
+      _sendButtonState = true;
+    } else {
+      _sendButtonState = false;
+    }
+    notifyListeners();
+  }
+
+  Function get setSendButtonState => _setSendButtonState;
+
+  // Select city screen
+  bool _selectCityScreenState = false;
+  bool get selectCityScreenState => _selectCityScreenState;
+  void _setSelectCityScreenState() {
+    _selectCityScreenState = !_selectCityScreenState;
+    notifyListeners();
+  }
+
+  Function get setSelectCityScreenState => _setSelectCityScreenState;
+
+  String? _selectedCity;
+  String? get selectedCity => _selectedCity;
+  void _setSelectedCity(String? value) {
+    if (value == null) {
+      _selectedCity = null;
+    } else {
+      if (_selectedCity == null) {
+        _selectedCity = value;
+      } else {
+        _selectedCity = "${_selectedCity!}, $value";
+      }
+    }
+    _setSendButtonState();
+  }
+
+  Function get setSelectedCity => _setSelectedCity;
+
   // Select skill screen
 
   bool _selectSkillScreenState = false;
   bool get selectSkillScreenState => _selectSkillScreenState;
-  void _setSelectSkillScreenState(BuildContext context) async {
-    FocusScope.of(context).requestFocus(FocusNode());
-    _onTapOutSidePhoneField();
-    if (_selectSkillScreenState) {
-      _selectSkillScreenState = !_selectSkillScreenState;
-    } else {
-      await ApiClient().getSkillsList().then(
-        (value) {
-          for (String element in value) {
-            _skillList[element] = false;
-          }
-        },
-      );
-      _selectSkillScreenState = !_selectSkillScreenState;
-    }
+  void _setSelectSkillScreenState() {
+    _selectSkillScreenState = !_selectSkillScreenState;
     notifyListeners();
   }
 
   Function get setSelectSkillScreenState => _setSelectSkillScreenState;
 
-  final Map<String, bool> _skillList = {};
-  Map<String, bool> get skillList => _skillList;
-
-  void _onClickSkillListItem(int index) {
-    _skillList.update(_skillList.keys.toList()[index],
-        (value) => !_skillList.values.toList()[index]);
-    _setSelectSkillButtonState();
-    notifyListeners();
-  }
-
-  Function get onClickSkillListItem => _onClickSkillListItem;
-
-  // Select skill button
-
-  bool _selectSkillButtonState = false;
-  bool get selectSkillButtonState => _selectSkillButtonState;
-  void _setSelectSkillButtonState() {
-    for (bool value in _skillList.values.toList()) {
-      if (value) {
-        _selectSkillButtonState = true;
-        break;
+  String? _selectedSkill;
+  String? get selectedSkill => _selectedSkill;
+  void _setSelectedSkill(String? value) {
+    if (value == null) {
+      _selectedSkill = null;
+    } else {
+      if (_selectedSkill == null) {
+        _selectedSkill = value;
       } else {
-        _selectSkillButtonState = false;
+        _selectedSkill = "${_selectedSkill!}, $value";
       }
     }
+    _setSendButtonState();
   }
 
-  // Successfully modal window
+  Function get setSelectedSkill => _setSelectedSkill;
+
+  bool _invalidEmailState = false;
+  bool get invalidEmailState => _invalidEmailState;
+  String? _invalidEmailMessage;
+  String? get invalidEmailMessage => _invalidEmailMessage;
+
+  bool _invalidPhoneState = false;
+  bool get invalidPhoneState => _invalidPhoneState;
+  String? _invalidPhoneMessage;
+  String? get invalidPhoneMessage => _invalidPhoneMessage;
+
+  // Successfully window
 
   bool _successfullyModalWindowState = false;
   bool get successfullyModalWindowState => _successfullyModalWindowState;
@@ -539,39 +497,56 @@ class WorkScreenController extends ChangeNotifier {
   Function get setSuccessfullyModalWindowState =>
       _setSuccessfullyModalWindowState;
 
-  // Send button state
-
-  bool _sendButtonState = false;
-  bool get sendButtonState => _sendButtonState;
-  void _setSendButtonState() {
-    if (_nameController.text.isNotEmpty &&
-        _surNameController.text.isNotEmpty &&
-        _phoneNumberController.text.isNotEmpty &&
-        _selectedDate != null &&
-        _emailController.text.isNotEmpty &&
-        _selectedState != null &&
-        _selectedEntry != null &&
-        _selectedPolishLevel != null &&
-        _selectedEnglishLevel != null) {
-      _sendButtonState = true;
+  void _onClickSendButton(BuildContext context) async {
+    if (RegExp(r"(\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,6})")
+            .hasMatch(_emailController.text) &&
+        _phoneController.text.length == 9) {
+      _invalidEmailState = false;
+      _invalidEmailMessage = null;
+      _invalidPhoneState = false;
+      _invalidPhoneMessage = null;
+      notifyListeners();
+      Map<String, String> data = {
+        "user_id": "1",
+        "name": _nameController.text.trim(),
+        "surname": _surnameController.text.trim(),
+        "phone_number": "+48${_phoneController.text.trim()}",
+        "birth_day": _selectedBirthDate!,
+        "email": _emailController.text.trim(),
+        "state": _selectedState!,
+        "entry_grounds": _selectedEntry!,
+        "city": _selectedCity!,
+        "polish_skill": _selectedPolishLevel!,
+        "english_skill": _selectedEnglishLevel!,
+        "skill": _selectedSkill!
+      };
+      int? status;
+      try {
+        status = await MigrostoreApi().sendWorkForm(data);
+      } catch (e) {
+        return;
+      }
+      if (status == 201) {
+        setSuccessfullyModalWindowState();
+      } else {
+        return;
+      }
     } else {
-      _sendButtonState = false;
-    }
-    notifyListeners();
-  }
-
-  Function get setSendButtonState => _setSendButtonState;
-
-  void _onClickSendButton() {
-    _phoneNumberController.text.length == 9
-        ? _phoneNumberErrorFormatState = false
-        : _phoneNumberErrorFormatState = true;
-    RegExp(r"(\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,6})").hasMatch(_emailController.text)
-        ? _emailErrorFormatState = false
-        : _emailErrorFormatState = true;
-    if (!_phoneNumberErrorFormatState && !_emailErrorFormatState) {
-      _setSuccessfullyModalWindowState();
-    } else {
+      if (RegExp(r"(\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,6})")
+          .hasMatch(_emailController.text)) {
+        _invalidEmailState = false;
+        _invalidEmailMessage = null;
+      } else {
+        _invalidEmailState = true;
+        _invalidEmailMessage = "Неправильний формат пошти";
+      }
+      if (_phoneController.text.length == 9) {
+        _invalidPhoneState = false;
+        _invalidPhoneMessage = null;
+      } else {
+        _invalidPhoneState = true;
+        _invalidPhoneMessage = "Неправильний формат номера";
+      }
       notifyListeners();
       _scrollController.animateTo(0,
           duration: const Duration(milliseconds: 200), curve: Curves.linear);
@@ -580,8 +555,49 @@ class WorkScreenController extends ChangeNotifier {
 
   Function get onClickSendButton => _onClickSendButton;
 
-  // Scroll controller
+  void _onClickBackToMainScreenButton(BuildContext context) {
+    _setSuccessfullyModalWindowState();
+    Provider.of<MenuScreenController>(context, listen: false)
+        .setWorkScreenState();
+  }
 
-  final ScrollController _scrollController = ScrollController();
-  ScrollController get scrollController => _scrollController;
+  Function get onClickBackToMainScreenButton => _onClickBackToMainScreenButton;
+
+  // Hint text for phone input
+
+  bool _hintTextState = true;
+  bool get hintTextState => _hintTextState;
+  void _setHintTextState() {
+    if (_phoneController.text.isEmpty) {
+      _hintTextState = false;
+    } else {
+      return;
+    }
+    notifyListeners();
+  }
+
+  Function get setHintTextState => _setHintTextState;
+
+  void _onClickOutside() {
+    if (_phoneController.text.isEmpty) {
+      _hintTextState = true;
+    } else {
+      _hintTextState = false;
+    }
+    notifyListeners();
+  }
+
+  Function get onClickOutside => _onClickOutside;
+
+  // Initial modal window
+
+  bool _initialModalWindowState = true;
+  bool get initialModalWindowState => _initialModalWindowState;
+
+  void _setInitialModalWindowState() {
+    _initialModalWindowState = !_initialModalWindowState;
+    notifyListeners();
+  }
+
+  Function get setInitialModalWindowState => _setInitialModalWindowState;
 }

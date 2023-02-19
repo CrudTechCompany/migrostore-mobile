@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:migrostore/view/help_screen/help_screen_controller.dart';
 import 'package:migrostore/view/main_screen/main_screen_controller.dart';
+import 'package:migrostore/view/menu_screen/menu_screen_controller.dart';
 import 'package:provider/provider.dart';
 
 class HelpScreen extends StatelessWidget {
@@ -90,9 +91,14 @@ class HelpScreen extends StatelessWidget {
                   Align(
                     alignment: Alignment.bottomLeft,
                     child: InkWell(
-                      onTap: () => Provider.of<MainScreenController>(context,
-                              listen: false)
-                          .setHelpScreenState(),
+                      onTap: () {
+                        context
+                            .read<MenuScreenController>()
+                            .setHelpScreenState();
+                        Provider.of<MainScreenController>(context,
+                                listen: false)
+                            .setNavigationBarState();
+                      },
                       overlayColor:
                           MaterialStateProperty.all(Colors.transparent),
                       child: Icon(

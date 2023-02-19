@@ -61,10 +61,10 @@ class SuccessfullyWorkModalWindow extends StatelessWidget {
               padding: EdgeInsets.only(top: 25.0.h),
               child: InkWell(
                 onTap: () {
-                  context
-                      .read<WorkScreenController>()
-                      .setSuccessfullyModalWindowState();
-                  context.read<MainScreenController>().setWorkScreenState();
+                  Provider.of<WorkScreenController>(context, listen: false)
+                      .onClickBackToMainScreenButton(context);
+                  Provider.of<MainScreenController>(context, listen: false)
+                      .setNavigationBarState();
                 },
                 overlayColor: MaterialStateProperty.all(Colors.transparent),
                 child: DecoratedBox(

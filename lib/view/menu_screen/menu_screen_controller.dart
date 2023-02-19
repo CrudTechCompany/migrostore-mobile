@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:migrostore/view/app_screen/app_screen_controller.dart';
 import 'package:migrostore/view/main_screen/main_screen_controller.dart';
 import 'package:provider/provider.dart';
 
 class MenuScreenController extends ChangeNotifier {
-  final List<Map<String, String>> _items = [
+  final List<Map<String, String>> _content = [
     {
       "icon": "assets/menu_resume.svg",
       "title": "Резюме",
@@ -30,38 +32,86 @@ class MenuScreenController extends ChangeNotifier {
     },
   ];
 
-  List<Map<String, String>> get items => _items;
+  List<Map<String, String>> get content => _content;
 
-  // onClick menu items
+  // Legalization screen
 
-  void _onClickMenuItem(BuildContext context, int index) {
+  bool _legalizationScreenState = false;
+  bool get legalizationScreenState => _legalizationScreenState;
+  void _setLegalizationScreenState() {
+    _legalizationScreenState = !_legalizationScreenState;
+    notifyListeners();
+  }
+
+  Function get setLegalizationScreenState => _setLegalizationScreenState;
+
+  // Help screen
+
+  bool _helpScreenState = false;
+  bool get helpScreenState => _helpScreenState;
+  void _setHelpScreenState() {
+    _helpScreenState = !_helpScreenState;
+    notifyListeners();
+  }
+
+  Function get setHelpScreenState => _setHelpScreenState;
+
+  void _onClickMenuItem(BuildContext context, int index) async {
     switch (index) {
       case 0:
-        {
-          Provider.of<MainScreenController>(context, listen: false)
-              .setResumeScreenState();
-          break;
-        }
+        break;
       case 1:
         {
+          _setLegalizationScreenState();
           Provider.of<MainScreenController>(context, listen: false)
-              .setLegalizationScreenState();
+              .setNavigationBarState();
           break;
         }
+
       case 2:
         {
-          Provider.of<MainScreenController>(context, listen: false)
-              .setWorkScreenState();
+          if (Hive.isBoxOpen("userName")) {
+            if (Hive.box("userInfo").get("userInfo")["isAuthorized"]) {
+              _setWorkScreenState();
+              Provider.of<MainScreenController>(context, listen: false)
+                  .setNavigationBarState();
+            } else {
+              Provider.of<AppScreenController>(context, listen: false)
+                  .setAuthScreenState();
+            }
+          } else {
+            await Hive.openBox("userInfo").then((box) {
+              if (box.get("userInfo")["isAuthorized"]) {
+                _setWorkScreenState();
+                Provider.of<MainScreenController>(context, listen: false)
+                    .setNavigationBarState();
+              } else {
+                Provider.of<AppScreenController>(context, listen: false)
+                    .setAuthScreenState();
+              }
+            });
+          }
           break;
         }
       case 3:
         {
+          _setHelpScreenState();
           Provider.of<MainScreenController>(context, listen: false)
-              .setHelpScreenState();
+              .setNavigationBarState();
           break;
         }
     }
   }
 
   Function get onClickMenuItem => _onClickMenuItem;
+
+  // Work screen
+  bool _workScreenState = false;
+  bool get workScreenState => _workScreenState;
+  void _setWorkScreenState() {
+    _workScreenState = !_workScreenState;
+    notifyListeners();
+  }
+
+  Function get setWorkScreenState => _setWorkScreenState;
 }

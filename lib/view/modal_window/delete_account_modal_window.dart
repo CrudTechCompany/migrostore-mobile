@@ -1,8 +1,13 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:migrostore/view/app_screen/app_screen_controller.dart';
+import 'package:hive/hive.dart';
+import 'package:migrostore/service/migrostore_api.dart';
+import 'package:migrostore/view/main_screen/main_screen_controller.dart';
+import 'package:migrostore/view/settings_screen/settings_screen_controller.dart';
 import 'package:provider/provider.dart';
 
 class DeleteAccountModalWindow extends StatelessWidget {
@@ -57,9 +62,14 @@ class DeleteAccountModalWindow extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         InkWell(
-                          onTap: () => Provider.of<AppScreenController>(context,
-                                  listen: false)
-                              .setDeleteAccountModalWindowState(),
+                          onTap: () {
+                            context
+                                .read<SettingsScreenController>()
+                                .setDeleteAccountState(context);
+                            Provider.of<MainScreenController>(context,
+                                    listen: false)
+                                .setNavigationBarState();
+                          },
                           overlayColor:
                               MaterialStateProperty.all(Colors.transparent),
                           child: DecoratedBox(
@@ -90,7 +100,23 @@ class DeleteAccountModalWindow extends StatelessWidget {
                           ),
                         ),
                         InkWell(
-                          onTap: () => Phoenix.rebirth(context),
+                          onTap: () async {
+                            int? result;
+                            if (!Hive.isBoxOpen("userInfo")) {
+                              await Hive.openBox("userInfo");
+                            }
+                            try {
+                              result = await MigrostoreApi().deleteUser(
+                                  Hive.box("userInfo")
+                                      .get("userInfo")["accessToken"]);
+                            } catch (e) {
+                              return;
+                            }
+                            if (result == 200) {
+                              await Hive.box("userInfo").deleteFromDisk();
+                              Phoenix.rebirth(context);
+                            }
+                          },
                           overlayColor:
                               MaterialStateProperty.all(Colors.transparent),
                           child: DecoratedBox(

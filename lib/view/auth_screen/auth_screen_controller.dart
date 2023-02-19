@@ -1,19 +1,35 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:migrostore/view/app_screen/app_screen_controller.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AuthScreenController extends ChangeNotifier {
-  // SignIn/SignUp buttons
+  void _onClickTermsOrPrivacy(BuildContext context, String type) async {
+    switch (type) {
+      case "Terms":
+        Platform.isAndroid
+            ? Provider.of<AppScreenController>(context, listen: false)
+                .setTermsScreenState()
+            : await launchUrl(
+                Uri.parse("https://migrostore.pl/terms-and-conditions"),
+                mode: LaunchMode.externalApplication);
 
-  void _onClickSignInButton() {}
-  Function get onClickSignInButton => _onClickSignInButton;
+        break;
+      case "Privacy":
+        Platform.isAndroid
+            ? Provider.of<AppScreenController>(context, listen: false)
+                .setPrivacyScreenState()
+            : await launchUrl(Uri.parse("https://migrostore.pl/privacy-policy"),
+                mode: LaunchMode.externalApplication);
+        break;
+    }
+  }
 
-  void _onClickSignUpButton() {}
-  Function get onClickSignUpButton => _onClickSignUpButton;
+  Function get onClickTermsOrPrivacy => _onClickTermsOrPrivacy;
 
-  // SignIn screen
-
+  // Sign in screen
   bool _signInScreenState = false;
   bool get signInScreenState => _signInScreenState;
   void _setSignInScreenState() {
@@ -23,8 +39,7 @@ class AuthScreenController extends ChangeNotifier {
 
   Function get setSignInScreenState => _setSignInScreenState;
 
-  // SignUp screen
-
+  // Sign up screen
   bool _signUpScreenState = false;
   bool get signUpScreenState => _signUpScreenState;
   void _setSignUpScreenState() {
@@ -33,28 +48,4 @@ class AuthScreenController extends ChangeNotifier {
   }
 
   Function get setSignUpScreenState => _setSignUpScreenState;
-
-  // Privacy policy/Terms & conditions links
-
-  void _onClickPrivacyOrTermsLink(String type) async {
-    if (Platform.isIOS) {
-      switch (type) {
-        case "terms":
-          {
-            await launchUrl(
-                Uri.parse("https://migrostore.pl/terms-and-conditions"),
-                mode: LaunchMode.externalApplication);
-            break;
-          }
-        case "policy":
-          {
-            await launchUrl(Uri.parse("https://migrostore.pl/privacy-policy"),
-                mode: LaunchMode.externalApplication);
-            break;
-          }
-      }
-    }
-  }
-
-  Function get onClickPrivacyOrTermsLink => _onClickPrivacyOrTermsLink;
 }

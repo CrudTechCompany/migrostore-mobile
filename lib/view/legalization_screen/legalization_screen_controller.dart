@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
-import 'package:migrostore/services/api_client/api_client.dart';
+import 'package:migrostore/service/migrostore_api.dart';
+import 'package:migrostore/view/menu_screen/menu_screen_controller.dart';
 import 'package:provider/provider.dart';
 
-import '../main_screen/main_screen_controller.dart';
-
 class LegalizationScreenController extends ChangeNotifier {
-  // Dropdown cities list
+  // Select city
 
-  final List<DropdownMenuItem> _cities = [
+  final List<DropdownMenuItem> _cityList = [
     DropdownMenuItem(
       value: "Wroclaw",
       child: Text(
@@ -60,21 +59,11 @@ class LegalizationScreenController extends ChangeNotifier {
       ),
     ),
   ];
-  List<DropdownMenuItem> get cities => _cities;
-
-  String? _selectedCity;
-  String? get selectedCity => _selectedCity;
-  void _setSelectedCity(String value) {
-    _selectedCity = value;
-    _setNextButtonState();
-    notifyListeners();
-  }
-
-  Function get setSelectedCity => _setSelectedCity;
+  List<DropdownMenuItem> get cityList => _cityList;
 
   // Drop down services list
 
-  final List<DropdownMenuItem> _services = [
+  final List<DropdownMenuItem> _serviceList = [
     DropdownMenuItem(
       value: "Карта побиту",
       child: Text(
@@ -124,7 +113,17 @@ class LegalizationScreenController extends ChangeNotifier {
       ),
     ),
   ];
-  List<DropdownMenuItem> get services => _services;
+  List<DropdownMenuItem> get serviceList => _serviceList;
+
+  String? _selectedCity;
+  String? get selectedCity => _selectedCity;
+  void _setSelectedCity(String value) {
+    _selectedCity = value;
+    _setNextButtonState();
+    notifyListeners();
+  }
+
+  Function get setSelectedCity => _setSelectedCity;
 
   String? _selectedService;
   String? get selectedService => _selectedService;
@@ -282,9 +281,13 @@ class LegalizationScreenController extends ChangeNotifier {
         'time': _selectedTime.isEmpty ? null : _selectedTime,
         'message': _inputedMessage
       };
-      await ApiClient().createLegalizationRequest(body) == 201
-          ? _setLegalizationRequestModalWindowState()
-          : null;
+      try {
+        await MigrostoreApi().sendLegalizationForm(body) == 201
+            ? _setLegalizationRequestModalWindowState()
+            : null;
+      } catch (e) {
+        return;
+      }
     } else {
       if (_inputedEmail == null) {
         _emailErrorState = false;
@@ -319,9 +322,13 @@ class LegalizationScreenController extends ChangeNotifier {
             'time': _selectedTime.isEmpty ? null : _selectedTime,
             'message': _inputedMessage
           };
-          await ApiClient().createLegalizationRequest(body) == 201
-              ? _setLegalizationRequestModalWindowState()
-              : null;
+          try {
+            await MigrostoreApi().sendLegalizationForm(body) == 201
+                ? _setLegalizationRequestModalWindowState()
+                : null;
+          } catch (e) {
+            return;
+          }
         }
       }
     }
@@ -349,7 +356,7 @@ class LegalizationScreenController extends ChangeNotifier {
   void _onClickContinueButton(BuildContext context) {
     _setLegalizationRequestModalWindowState();
     _setLegalizationDataScreenState();
-    Provider.of<MainScreenController>(context, listen: false)
+    Provider.of<MenuScreenController>(context, listen: false)
         .setLegalizationScreenState();
   }
 

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:migrostore/view/setting_screen/settings_screen_controller.dart';
+import 'package:migrostore/view/main_screen/main_screen_controller.dart';
+import 'package:migrostore/view/settings_screen/settings_screen_controller.dart';
 import 'package:provider/provider.dart';
 
 class AboutUsScreen extends StatelessWidget {
@@ -139,9 +140,14 @@ class AboutUsScreen extends StatelessWidget {
                   Align(
                     alignment: Alignment.bottomLeft,
                     child: InkWell(
-                      onTap: () => context
-                          .read<SettingsScreenController>()
-                          .setAboutUsScreenState(),
+                      onTap: () {
+                        context
+                            .read<SettingsScreenController>()
+                            .setAboutUsScreenState();
+                        Provider.of<MainScreenController>(context,
+                                listen: false)
+                            .setNavigationBarState();
+                      },
                       overlayColor:
                           MaterialStateProperty.all(Colors.transparent),
                       child: Icon(

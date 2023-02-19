@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:migrostore/view/auth_screen/auth_screen_controller.dart';
+import 'package:migrostore/view/reset_password_screen/reset_password_screen.dart';
+import 'package:migrostore/view/reset_password_screen/reset_password_screen_controller.dart';
 import 'package:migrostore/view/sign_in_screen/sign_in_screen_controller.dart';
 import 'package:provider/provider.dart';
 
@@ -40,20 +42,42 @@ class SignInScreen extends StatelessWidget {
                     padding: EdgeInsets.only(top: 50.0.h),
                     child: Align(
                       alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Email",
-                        style: GoogleFonts.roboto(
-                          fontSize: 12.0.sp,
-                          fontWeight: FontWeight.w400,
-                          fontStyle: FontStyle.normal,
-                          color: const Color.fromARGB(255, 24, 24, 24),
-                        ),
+                      child: Row(
+                        children: [
+                          Text(
+                            "Email",
+                            style: GoogleFonts.roboto(
+                              fontSize: 12.0.sp,
+                              fontWeight: FontWeight.w400,
+                              fontStyle: FontStyle.normal,
+                              color: const Color.fromARGB(255, 24, 24, 24),
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(left: 4.0.w),
+                            child: Text(
+                              "*",
+                              style: GoogleFonts.roboto(
+                                fontSize: 12.0.sp,
+                                fontWeight: FontWeight.w400,
+                                fontStyle: FontStyle.normal,
+                                color: const Color.fromARGB(255, 255, 0, 0),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                   SizedBox(
                     height: 43.0.w,
                     child: TextField(
+                      onChanged: (value) => context
+                          .read<SignInScreenController>()
+                          .setNextButtonState(),
+                      controller: context
+                          .read<SignInScreenController>()
+                          .emailController,
                       keyboardType: TextInputType.emailAddress,
                       cursorHeight: 16.0.sp,
                       cursorColor: const Color.fromARGB(255, 24, 24, 24),
@@ -63,9 +87,6 @@ class SignInScreen extends StatelessWidget {
                         fontStyle: FontStyle.normal,
                         color: const Color.fromARGB(255, 24, 24, 24),
                       ),
-                      onChanged: (value) => context
-                          .read<SignInScreenController>()
-                          .onChangedInputedEmail(value),
                       decoration: InputDecoration(
                         contentPadding: EdgeInsets.zero,
                         filled: true,
@@ -79,25 +100,26 @@ class SignInScreen extends StatelessWidget {
                         ),
                         enabledBorder: UnderlineInputBorder(
                           borderSide: BorderSide(
-                            width: 1.0.w,
+                            width: 1.0.h,
                             color: context
                                     .watch<SignInScreenController>()
-                                    .emailErrorState
+                                    .invalidEmailState
                                 ? const Color.fromARGB(255, 255, 0, 0)
                                 : context
-                                            .watch<SignInScreenController>()
-                                            .inputedEmail ==
-                                        null
+                                        .watch<SignInScreenController>()
+                                        .emailController
+                                        .text
+                                        .isEmpty
                                     ? const Color.fromARGB(255, 180, 180, 180)
                                     : const Color.fromARGB(255, 24, 24, 24),
                           ),
                         ),
                         focusedBorder: UnderlineInputBorder(
                           borderSide: BorderSide(
-                            width: 1.0.w,
+                            width: 1.0.h,
                             color: context
                                     .watch<SignInScreenController>()
-                                    .emailErrorState
+                                    .invalidEmailState
                                 ? const Color.fromARGB(255, 255, 0, 0)
                                 : const Color.fromARGB(255, 24, 24, 24),
                           ),
@@ -105,22 +127,24 @@ class SignInScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  context.watch<SignInScreenController>().emailErrorState
-                      ? Align(
-                          alignment: Alignment.centerRight,
-                          child: Padding(
-                            padding: EdgeInsets.only(top: 5.0.h),
-                            child: Text(
-                              context
-                                  .read<SignInScreenController>()
-                                  .emailErrorText,
-                              style: GoogleFonts.roboto(
-                                fontSize: 12.0.sp,
-                                fontWeight: FontWeight.w400,
-                                fontStyle: FontStyle.normal,
-                                color: const Color.fromARGB(255, 255, 0, 0),
+                  context.watch<SignInScreenController>().invalidEmailState
+                      ? Padding(
+                          padding: EdgeInsets.only(top: 2.0.h),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text(
+                                context
+                                    .read<SignInScreenController>()
+                                    .invalidEmailMessage!,
+                                style: GoogleFonts.roboto(
+                                  fontSize: 12.0.sp,
+                                  fontWeight: FontWeight.w400,
+                                  fontStyle: FontStyle.normal,
+                                  color: const Color.fromARGB(255, 255, 0, 0),
+                                ),
                               ),
-                            ),
+                            ],
                           ),
                         )
                       : const SizedBox.shrink(),
@@ -128,84 +152,21 @@ class SignInScreen extends StatelessWidget {
                     padding: EdgeInsets.only(top: 20.0.h),
                     child: Align(
                       alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Пароль",
-                        style: GoogleFonts.roboto(
-                          fontSize: 12.0.sp,
-                          fontWeight: FontWeight.w400,
-                          fontStyle: FontStyle.normal,
-                          color: const Color.fromARGB(255, 24, 24, 24),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 43.0.w,
-                    child: TextField(
-                      controller: context
-                          .read<SignInScreenController>()
-                          .passwordController,
-                      maxLength: 6,
-                      cursorHeight: 16.0.sp,
-                      cursorColor: const Color.fromARGB(255, 24, 24, 24),
-                      style: GoogleFonts.roboto(
-                        fontSize: 16.0.sp,
-                        fontWeight: FontWeight.w400,
-                        fontStyle: FontStyle.normal,
-                        color: const Color.fromARGB(255, 24, 24, 24),
-                      ),
-                      onChanged: (value) => context
-                          .read<SignInScreenController>()
-                          .onChangedInputedPassword(value),
-                      decoration: InputDecoration(
-                        counterText: "",
-                        contentPadding: EdgeInsets.zero,
-                        filled: true,
-                        fillColor: const Color.fromARGB(255, 255, 255, 255),
-                        hintText: "Введіть пароль",
-                        hintStyle: GoogleFonts.roboto(
-                          fontSize: 16.0.sp,
-                          fontWeight: FontWeight.w400,
-                          fontStyle: FontStyle.normal,
-                          color: const Color.fromARGB(255, 180, 180, 180),
-                        ),
-                        enabledBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            width: 1.0.w,
-                            color: context
-                                    .watch<SignInScreenController>()
-                                    .passwordErrorState
-                                ? const Color.fromARGB(255, 255, 0, 0)
-                                : context
-                                            .watch<SignInScreenController>()
-                                            .inputedPassword ==
-                                        null
-                                    ? const Color.fromARGB(255, 180, 180, 180)
-                                    : const Color.fromARGB(255, 24, 24, 24),
+                      child: Row(
+                        children: [
+                          Text(
+                            "Пароль",
+                            style: GoogleFonts.roboto(
+                              fontSize: 12.0.sp,
+                              fontWeight: FontWeight.w400,
+                              fontStyle: FontStyle.normal,
+                              color: const Color.fromARGB(255, 24, 24, 24),
+                            ),
                           ),
-                        ),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(
-                            width: 1.0.w,
-                            color: context
-                                    .watch<SignInScreenController>()
-                                    .passwordErrorState
-                                ? const Color.fromARGB(255, 255, 0, 0)
-                                : const Color.fromARGB(255, 24, 24, 24),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  context.watch<SignInScreenController>().passwordErrorState
-                      ? Align(
-                          alignment: Alignment.centerRight,
-                          child: Padding(
-                            padding: EdgeInsets.only(top: 5.0.h),
+                          Padding(
+                            padding: EdgeInsets.only(left: 4.0.w),
                             child: Text(
-                              context
-                                  .read<SignInScreenController>()
-                                  .passwordErrorText,
+                              "*",
                               style: GoogleFonts.roboto(
                                 fontSize: 12.0.sp,
                                 fontWeight: FontWeight.w400,
@@ -214,10 +175,140 @@ class SignInScreen extends StatelessWidget {
                               ),
                             ),
                           ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Stack(
+                    alignment: Alignment.centerRight,
+                    children: [
+                      SizedBox(
+                        height: 43.0.w,
+                        child: TextField(
+                          obscureText: context
+                              .watch<SignInScreenController>()
+                              .obscureState,
+                          onChanged: (value) => context
+                              .read<SignInScreenController>()
+                              .setNextButtonState(),
+                          controller: context
+                              .read<SignInScreenController>()
+                              .passwordController,
+                          cursorHeight: 16.0.sp,
+                          cursorColor: const Color.fromARGB(255, 24, 24, 24),
+                          style: GoogleFonts.roboto(
+                            fontSize: 16.0.sp,
+                            fontWeight: FontWeight.w400,
+                            fontStyle: FontStyle.normal,
+                            color: const Color.fromARGB(255, 24, 24, 24),
+                          ),
+                          decoration: InputDecoration(
+                            counterText: "",
+                            contentPadding: EdgeInsets.zero,
+                            filled: true,
+                            fillColor: const Color.fromARGB(255, 255, 255, 255),
+                            hintText: "Введіть пароль",
+                            hintStyle: GoogleFonts.roboto(
+                              fontSize: 16.0.sp,
+                              fontWeight: FontWeight.w400,
+                              fontStyle: FontStyle.normal,
+                              color: const Color.fromARGB(255, 180, 180, 180),
+                            ),
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                width: 1.0.h,
+                                color: context
+                                        .watch<SignInScreenController>()
+                                        .invalidPasswordState
+                                    ? const Color.fromARGB(255, 255, 0, 0)
+                                    : context
+                                            .watch<SignInScreenController>()
+                                            .passwordController
+                                            .text
+                                            .isEmpty
+                                        ? const Color.fromARGB(
+                                            255, 180, 180, 180)
+                                        : const Color.fromARGB(255, 24, 24, 24),
+                              ),
+                            ),
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                width: 1.0.h,
+                                color: context
+                                        .watch<SignInScreenController>()
+                                        .invalidPasswordState
+                                    ? const Color.fromARGB(255, 255, 0, 0)
+                                    : const Color.fromARGB(255, 24, 24, 24),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: InkWell(
+                          onTap: () => context
+                              .read<SignInScreenController>()
+                              .setObscureState(),
+                          overlayColor:
+                              MaterialStateProperty.all(Colors.transparent),
+                          child: Icon(
+                            context.watch<SignInScreenController>().obscureState
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            size: 20.0.w,
+                            color: const Color.fromARGB(255, 24, 24, 24),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  context.watch<SignInScreenController>().invalidPasswordState
+                      ? Padding(
+                          padding: EdgeInsets.only(top: 2.0.h),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text(
+                                context
+                                    .read<SignInScreenController>()
+                                    .invalidPasswordMessage!,
+                                style: GoogleFonts.roboto(
+                                  fontSize: 12.0.sp,
+                                  fontWeight: FontWeight.w400,
+                                  fontStyle: FontStyle.normal,
+                                  color: const Color.fromARGB(255, 255, 0, 0),
+                                ),
+                              ),
+                            ],
+                          ),
                         )
                       : const SizedBox.shrink(),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 20.0.h),
+                      child: InkWell(
+                        onTap: () => context
+                            .read<SignInScreenController>()
+                            .setResetPasswordScreenState(),
+                        overlayColor:
+                            MaterialStateProperty.all(Colors.transparent),
+                        child: Text(
+                          "Забули пароль?",
+                          style: GoogleFonts.roboto(
+                            decoration: TextDecoration.underline,
+                            fontSize: 16.0.sp,
+                            fontWeight: FontWeight.w500,
+                            fontStyle: FontStyle.normal,
+                            color: const Color.fromARGB(255, 24, 24, 24),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                   Padding(
-                    padding: EdgeInsets.only(top: 100.0.h),
+                    padding: EdgeInsets.only(top: 44.0.h),
                     child: InkWell(
                       onTap: context
                               .watch<SignInScreenController>()
@@ -226,9 +317,11 @@ class SignInScreen extends StatelessWidget {
                               .read<SignInScreenController>()
                               .onClickSignInButton(context)
                           : null,
+                      overlayColor:
+                          MaterialStateProperty.all(Colors.transparent),
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30.0.r),
+                          borderRadius: BorderRadius.circular(30.0.w),
                           color: context
                                   .watch<SignInScreenController>()
                                   .signInButtonState
@@ -254,7 +347,9 @@ class SignInScreen extends StatelessWidget {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.only(top: 30.0.h),
+                    padding: EdgeInsets.only(
+                      top: 30.0.h,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -273,10 +368,10 @@ class SignInScreen extends StatelessWidget {
                             onTap: () {
                               context
                                   .read<AuthScreenController>()
-                                  .setSignInScreenState();
+                                  .setSignUpScreenState();
                               context
                                   .read<AuthScreenController>()
-                                  .setSignUpScreenState();
+                                  .setSignInScreenState();
                             },
                             overlayColor:
                                 MaterialStateProperty.all(Colors.transparent),
@@ -337,7 +432,7 @@ class SignInScreen extends StatelessWidget {
                       width: 60.0.w,
                       height: 43.0.w,
                       child: SvgPicture.asset(
-                        "assets/migrostore.svg",
+                        "assets/migrostore_header_logo.svg",
                         fit: BoxFit.fill,
                       ),
                     ),
@@ -347,6 +442,12 @@ class SignInScreen extends StatelessWidget {
             ),
           ),
         ),
+        context.watch<SignInScreenController>().resetPasswordScreenState
+            ? ChangeNotifierProvider(
+                create: (_) => ResetPasswordScreenController(),
+                child: const ResetPasswordScreen(),
+              )
+            : const SizedBox.shrink(),
       ],
     );
   }

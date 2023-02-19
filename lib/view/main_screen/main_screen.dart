@@ -1,121 +1,81 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:migrostore/view/auth_screen/auth_screen.dart';
-import 'package:migrostore/view/auth_screen/auth_screen_controller.dart';
-import 'package:migrostore/view/legalization_screen/legalization_screen.dart';
-import 'package:migrostore/view/legalization_screen/legalization_screen_controller.dart';
 import 'package:migrostore/view/main_screen/main_screen_controller.dart';
-import 'package:migrostore/view/work_screen/work_screen.dart';
-import 'package:migrostore/view/work_screen/work_screen_controller.dart';
 import 'package:provider/provider.dart';
-import '../help_screen/help_screen.dart';
-import '../help_screen/help_screen_controller.dart';
-import '../resume_screen/resume_screen.dart';
-import '../resume_screen/resume_screen_controller.dart';
 
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Scaffold(
-          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: context.watch<MainScreenController>().index,
-            onTap: (value) {
-              context.read<MainScreenController>().setIndex(value);
-            },
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-            selectedItemColor: const Color.fromARGB(255, 24, 24, 24),
-            unselectedItemColor: const Color.fromARGB(255, 144, 144, 144),
-            selectedLabelStyle: GoogleFonts.roboto(
-              fontSize: 14.0.sp,
-              fontWeight: FontWeight.w600,
-              fontStyle: FontStyle.normal,
-            ),
-            unselectedLabelStyle: GoogleFonts.roboto(
-              fontSize: 12.0.sp,
-              fontWeight: FontWeight.w600,
-              fontStyle: FontStyle.normal,
-            ),
-            items: <BottomNavigationBarItem>[
-              BottomNavigationBarItem(
-                icon: Icon(
-                  Icons.home,
-                  color: context.watch<MainScreenController>().index == 0
-                      ? const Color.fromARGB(255, 24, 24, 24)
-                      : const Color.fromARGB(255, 144, 144, 144),
-                  size: context.watch<MainScreenController>().index == 0
-                      ? 26.0.w
-                      : 24.0.w,
-                ),
-                label: "Головна",
+    return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      bottomNavigationBar: context
+              .watch<MainScreenController>()
+              .navigationBarState
+          ? BottomNavigationBar(
+              currentIndex: context.watch<MainScreenController>().index,
+              onTap: (value) {
+                context.read<MainScreenController>().setIndex(context, value);
+              },
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+              selectedItemColor: const Color.fromARGB(255, 24, 24, 24),
+              unselectedItemColor: const Color.fromARGB(255, 144, 144, 144),
+              selectedLabelStyle: GoogleFonts.roboto(
+                fontSize: 14.0.sp,
+                fontWeight: FontWeight.w600,
+                fontStyle: FontStyle.normal,
               ),
-              BottomNavigationBarItem(
-                icon: Icon(
-                  Icons.account_circle_outlined,
-                  color: context.watch<MainScreenController>().index == 1
-                      ? const Color.fromARGB(255, 24, 24, 24)
-                      : const Color.fromARGB(255, 144, 144, 144),
-                  size: context.watch<MainScreenController>().index == 1
-                      ? 26.0.w
-                      : 24.0.w,
-                ),
-                label: "Мій профіль",
+              unselectedLabelStyle: GoogleFonts.roboto(
+                fontSize: 12.0.sp,
+                fontWeight: FontWeight.w600,
+                fontStyle: FontStyle.normal,
               ),
-              BottomNavigationBarItem(
-                icon: Icon(
-                  Icons.settings,
-                  color: context.watch<MainScreenController>().index == 2
-                      ? const Color.fromARGB(255, 24, 24, 24)
-                      : const Color.fromARGB(255, 144, 144, 144),
-                  size: context.watch<MainScreenController>().index == 2
-                      ? 26.0.w
-                      : 24.0.w,
+              items: <BottomNavigationBarItem>[
+                BottomNavigationBarItem(
+                  icon: Icon(
+                    Icons.home,
+                    color: context.watch<MainScreenController>().index == 0
+                        ? const Color.fromARGB(255, 24, 24, 24)
+                        : const Color.fromARGB(255, 144, 144, 144),
+                    size: context.watch<MainScreenController>().index == 0
+                        ? 26.0.w
+                        : 24.0.w,
+                  ),
+                  label: "Головна",
                 ),
-                label: "Налаштування",
-              )
-            ],
-          ),
-          body: context
-              .read<MainScreenController>()
-              .screens[context.watch<MainScreenController>().index],
-        ),
-        context.watch<MainScreenController>().legalizationScreenState
-            ? ChangeNotifierProvider(
-                create: (_) => LegalizationScreenController(),
-                child: const LegalizationScreen(),
-              )
-            : const SizedBox.shrink(),
-        context.watch<MainScreenController>().helpScreenState
-            ? ChangeNotifierProvider(
-                create: (_) => HelpScreenController(),
-                child: const HelpScreen(),
-              )
-            : const SizedBox.shrink(),
-        context.watch<MainScreenController>().workScreenState
-            ? ChangeNotifierProvider(
-                create: (_) => WorkScreenController(),
-                child: const WorkScreen(),
-              )
-            : const SizedBox.shrink(),
-        context.watch<MainScreenController>().resumeScreenState
-            ? ChangeNotifierProvider(
-                create: (_) => ResumeScreenController(),
-                child: const ResumeScreen(),
-              )
-            : const SizedBox.shrink(),
-        context.watch<MainScreenController>().isUserAuthorazed
-            ? const SizedBox.shrink()
-            : ChangeNotifierProvider(
-                create: (_) => AuthScreenController(),
-                child: const AuthScreen(),
-              ),
-      ],
+                BottomNavigationBarItem(
+                  icon: Icon(
+                    Icons.account_circle_outlined,
+                    color: context.watch<MainScreenController>().index == 1
+                        ? const Color.fromARGB(255, 24, 24, 24)
+                        : const Color.fromARGB(255, 144, 144, 144),
+                    size: context.watch<MainScreenController>().index == 1
+                        ? 26.0.w
+                        : 24.0.w,
+                  ),
+                  label: "Мій профіль",
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(
+                    Icons.settings,
+                    color: context.watch<MainScreenController>().index == 2
+                        ? const Color.fromARGB(255, 24, 24, 24)
+                        : const Color.fromARGB(255, 144, 144, 144),
+                    size: context.watch<MainScreenController>().index == 2
+                        ? 26.0.w
+                        : 24.0.w,
+                  ),
+                  label: "Налаштування",
+                )
+              ],
+            )
+          : null,
+      body: context
+          .read<MainScreenController>()
+          .screens[context.watch<MainScreenController>().index],
     );
   }
 }

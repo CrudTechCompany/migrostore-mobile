@@ -1,151 +1,134 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:migrostore/service/migrostore_api.dart';
 
 class SignUpScreenController extends ChangeNotifier {
-  // Email input field
-
-  bool _emailErrorState = false;
-  bool get emailErrorState => _emailErrorState;
-  final String _emailErrorText = "Неправильний формат пошти";
-  String get emailErrorText => _emailErrorText;
-
-  String? _inputedEmail;
-  String? get inputedEmail => _inputedEmail;
-  void _onChangedInputedEmail(String value) {
-    value.isEmpty ? _inputedEmail = null : _inputedEmail = value;
-    _setSendCodeButtonState();
-    notifyListeners();
-  }
-
-  Function get onChangedInputedEmail => _onChangedInputedEmail;
-
-  // Password input field
+  final TextEditingController _emailController = TextEditingController();
+  TextEditingController get emailController => _emailController;
 
   final TextEditingController _passwordController = TextEditingController();
   TextEditingController get passwordController => _passwordController;
-  bool _passwordErrorState = false;
-  bool get passwordErrorState => _passwordErrorState;
-  final String _passwordErrorText = "Мінімум 6 символів";
-  String get passwordErrorText => _passwordErrorText;
-
-  String? _inputedPassword;
-  String? get inputedPassword => _inputedPassword;
-  void _onChangedInputedPassword(String value) {
-    value.isEmpty ? _inputedPassword = null : _inputedPassword = value;
-    _setSendCodeButtonState();
-    notifyListeners();
-  }
-
-  Function get onChangedInputedPassword => _onChangedInputedPassword;
-
-  // Confirm password input field
 
   final TextEditingController _confirmPasswordController =
       TextEditingController();
   TextEditingController get confirmPasswordController =>
       _confirmPasswordController;
 
-  bool _confirmPasswordErrorState = false;
-  bool get confirmPasswordErrorState => _confirmPasswordErrorState;
-  final String _confirmPasswordErrorText = "Паролі не співпадають";
-  String get confirmPasswordErrorText => _confirmPasswordErrorText;
-
-  String? _inputedConfirmPassword;
-  String? get inputedConfirmPassword => _inputedConfirmPassword;
-  void _onChangedInputedConfirmPassword(String value) {
-    value.isEmpty
-        ? _inputedConfirmPassword = null
-        : _inputedConfirmPassword = value;
-    _setSendCodeButtonState();
-    notifyListeners();
-  }
-
-  Function get onChangedInputedConfirmPassword =>
-      _onChangedInputedConfirmPassword;
-
-  // Send code button
-
   bool _sendCodeButtonState = false;
   bool get sendCodeButtonState => _sendCodeButtonState;
   void _setSendCodeButtonState() {
-    if (_inputedEmail != null &&
-        _inputedPassword != null &&
-        _inputedConfirmPassword != null) {
+    if (_emailController.text.isNotEmpty &&
+        _passwordController.text.isNotEmpty &&
+        _confirmPasswordController.text.isNotEmpty) {
       _sendCodeButtonState = true;
     } else {
       _sendCodeButtonState = false;
     }
+    notifyListeners();
   }
 
-  void _onClickSednCodeButton() {
-    if (RegExp(r"(\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,6})").hasMatch(_inputedEmail!) &&
-        _inputedPassword!.length == 6 &&
-        _inputedPassword == _inputedConfirmPassword) {
-      _emailErrorState = false;
-      _passwordErrorState = false;
-      _confirmPasswordErrorState = false;
-      _setCheckCodeScreenState();
+  Function get setSendCodeButtonState => _setSendCodeButtonState;
+
+  bool _invalidEmailState = false;
+  bool get invalidEmailState => _invalidEmailState;
+  String? _invalidEmailMessage;
+  String? get invalidEmailMessage => _invalidEmailMessage;
+
+  bool _invalidPasswordState = false;
+  bool get invalidPasswordState => _invalidPasswordState;
+  String? _invalidPasswordMessage;
+  String? get invalidPasswordMessage => _invalidPasswordMessage;
+
+  bool _invalidConfirmPasswordState = false;
+  bool get invalidConfirmPasswordState => _invalidConfirmPasswordState;
+  String? _invalidConfirmPasswordMessage;
+  String? get invalidConfirmPasswordMessage => _invalidConfirmPasswordMessage;
+
+  int? _userId;
+  int? get userId => _userId;
+
+  void _onClickSendCodeButton() async {
+    if (RegExp(r"(\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,6})")
+            .hasMatch(_emailController.text) &&
+        _passwordController.text.length >= 6 &&
+        _confirmPasswordController.text == _passwordController.text) {
+      _invalidEmailState = false;
+      _invalidEmailMessage = null;
+      _invalidPasswordState = false;
+      _invalidPasswordMessage = null;
+      _invalidConfirmPasswordState = false;
+      _invalidConfirmPasswordMessage = null;
+      notifyListeners();
+      try {
+        _userId = await MigrostoreApi().sendVerificationCode({
+          "email": _emailController.text,
+          "password": _passwordController.text,
+        });
+      } catch (e) {
+        return;
+      }
+      if (_userId == -1) {
+        _invalidEmailState = true;
+        _invalidEmailMessage = "Ця пошта вже зайнята";
+        notifyListeners();
+      } else {
+        _setCodeScreenState();
+      }
     } else {
-      RegExp(r"(\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,6})").hasMatch(_inputedEmail!)
-          ? _emailErrorState = false
-          : _emailErrorState = true;
-      _inputedPassword!.length == 6
-          ? _passwordErrorState = false
-          : _passwordErrorState = true;
-      _inputedPassword == _inputedConfirmPassword
-          ? _confirmPasswordErrorState = false
-          : _confirmPasswordErrorState = true;
+      if (RegExp(r"(\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,6})")
+          .hasMatch(_emailController.text)) {
+        _invalidEmailState = false;
+        _invalidEmailMessage = null;
+      } else {
+        _invalidEmailState = true;
+        _invalidEmailMessage = "Неправильний формат пошти";
+      }
+      if (_passwordController.text.length >= 6) {
+        _invalidPasswordState = false;
+        _invalidPasswordMessage = null;
+      } else {
+        _invalidPasswordState = true;
+        _invalidPasswordMessage = "Мінімум 6 символів";
+      }
+      if (_passwordController.text == _confirmPasswordController.text) {
+        _invalidConfirmPasswordState = false;
+        _invalidConfirmPasswordMessage = null;
+      } else {
+        _invalidConfirmPasswordState = true;
+        _invalidConfirmPasswordMessage = "Паролі не співпадають";
+      }
+      notifyListeners();
     }
+  }
+
+  Function get onClickSendCodeButton => _onClickSendCodeButton;
+
+  // Code screen
+
+  bool _codeScreenState = false;
+  bool get codeScreenState => _codeScreenState;
+  void _setCodeScreenState() {
+    _codeScreenState = !_codeScreenState;
     notifyListeners();
   }
 
-  Function get onClickSendCodeButton => _onClickSednCodeButton;
+  Function get setCodeScreenState => _setCodeScreenState;
 
-  // Check code screen
-
-  bool _checkCodeScreenState = false;
-  bool get checkCodeScreenState => _checkCodeScreenState;
-  void _setCheckCodeScreenState() {
-    _checkCodeScreenState = !_checkCodeScreenState;
+  bool _obscurePasswordState = true;
+  bool get obscurePasswordState => _obscurePasswordState;
+  void _setObscurePasswordState() {
+    _obscurePasswordState = !_obscurePasswordState;
     notifyListeners();
   }
 
-  Function get setCheckCodeScreenState => _setCheckCodeScreenState;
+  Function get setObscurePasswordState => _setObscurePasswordState;
 
-  // Timer periodic
-
-  int _initialTime = 30;
-  int get initialTime => _initialTime;
-  void _setInitialTime() {
-    _initialTime = 30;
+  bool _obscureConfirmPasswordState = true;
+  bool get obscureConfirmPasswordState => _obscureConfirmPasswordState;
+  void _setObscureConfirmPasswordState() {
+    _obscureConfirmPasswordState = !_obscureConfirmPasswordState;
     notifyListeners();
   }
 
-  Function get setInitialTime => _setInitialTime;
-
-  Timer? _timer;
-  Timer? get timer => _timer;
-  void _stopTimer() {
-    _timer != null ? _timer!.cancel() : null;
-  }
-
-  Function get stopTimer => _stopTimer;
-
-  void _setTimer() {
-    _timer = Timer.periodic(
-      const Duration(seconds: 1),
-      (timer) {
-        if (_initialTime > 0) {
-          _initialTime--;
-          notifyListeners();
-        } else {
-          _timer!.cancel();
-          _timer = null;
-        }
-      },
-    );
-  }
-
-  Function get setTimer => _setTimer;
+  Function get setObscureConfirmPasswordState =>
+      _setObscureConfirmPasswordState;
 }

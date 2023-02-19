@@ -1,40 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:migrostore/services/api_client/api_client.dart';
+import 'package:hive/hive.dart';
+import 'package:migrostore/service/migrostore_api.dart';
 
 class ProfileScreenController extends ChangeNotifier {
-  // Name text field
-
-  String? _inputedName;
-  String? get inputedName => _inputedName;
-  void _onChangeInputedName(String value) {
-    value.isEmpty ? _inputedName = null : _inputedName = value;
-    _setSaveProfileButtonState();
+  bool _isInitialized = false;
+  bool get isInitialized => _isInitialized;
+  void _setIsInitialized() {
+    _isInitialized = !_isInitialized;
     notifyListeners();
   }
 
-  Function get onChangeInputedName => _onChangeInputedName;
+  Function get setIsInitialized => _setIsInitialized;
 
-  // Surname text field
-
-  String? _inputedSurName;
-  String? get inputedSurName => _inputedSurName;
-  void _onChangeInputedSurName(String value) {
-    value.isEmpty ? _inputedSurName = null : _inputedSurName = value;
-    _setSaveProfileButtonState();
-    notifyListeners();
+  void _setInitialState() {
+    _nameController.text =
+        Hive.box("userInfo").get("userInfo")["firstName"] ?? "";
+    _surnameController.text =
+        Hive.box("userInfo").get("userInfo")["lastName"] ?? "";
+    _phoneController.text =
+        Hive.box("userInfo").get("userInfo")["phoneNumber"] ?? "";
+    _selectedBirthDate = Hive.box("userInfo").get("userInfo")["birthDate"];
+    _emailController.text = Hive.box("userInfo").get("userInfo")["email"] ?? "";
+    _selectedState = Hive.box("userInfo").get("userInfo")["countryOfStay"];
+    _selectedEntry = Hive.box("userInfo").get("userInfo")["groundOfStay"];
+    _selectedCity = Hive.box("userInfo").get("userInfo")["jobSearchCity"];
+    _selectedPolishLevel = Hive.box("userInfo").get("userInfo")["polishLang"];
+    _selectedEnglishLevel = Hive.box("userInfo").get("userInfo")["engLang"];
+    _selectedSkill = Hive.box("userInfo").get("userInfo")["skills"];
+    _phoneController.text.isEmpty
+        ? _hintTextState = true
+        : _hintTextState = false;
+    _setSendButtonState();
   }
 
-  Function get onChangeInputedSurName => _onChangeInputedSurName;
+  Function get setInitializedState => _setInitialState;
 
-  // BirthDay date picker
+  final TextEditingController _nameController = TextEditingController();
+  TextEditingController get nameController => _nameController;
 
-  String? _selectedBirthDay;
-  String? get selectedBirthDay => _selectedBirthDay;
+  final TextEditingController _surnameController = TextEditingController();
+  TextEditingController get surnameController => _surnameController;
 
-  void _onClickBirthDayField(BuildContext context) async {
+  final TextEditingController _emailController = TextEditingController();
+  TextEditingController get emailController => _emailController;
+
+  final TextEditingController _phoneController = TextEditingController();
+  TextEditingController get phoneController => _phoneController;
+
+  // Select date field
+
+  String? _selectedBirthDate;
+  String? get selectedBirthDate => _selectedBirthDate;
+
+  void _onClickSelectDateField(BuildContext context) async {
     await showDatePicker(
       context: context,
       initialDate: DateTime(
@@ -51,53 +72,41 @@ class ProfileScreenController extends ChangeNotifier {
         DateTime.now().day,
       ),
     ).then(
-      (value) => _setSelectedBirthDay(value),
+      (value) {
+        if (value == null) {
+          return;
+        } else {
+          _selectedBirthDate = null;
+          value.day > 9
+              ? _selectedBirthDate = value.day.toString()
+              : _selectedBirthDate = "0${value.day}";
+          value.month > 9
+              ? _selectedBirthDate = "${_selectedBirthDate!}-${value.month}"
+              : _selectedBirthDate = "${_selectedBirthDate!}-0${value.month}";
+          _selectedBirthDate = "${_selectedBirthDate!}-${value.year}";
+          _setSendButtonState();
+          notifyListeners();
+        }
+      },
     );
   }
 
-  Function get onClickBirthDayField => _onClickBirthDayField;
+  // Select state field
 
-  void _setSelectedBirthDay(DateTime? date) {
-    if (date == null) {
+  String? _selectedState;
+  String? get selectedState => _selectedState;
+  void _onChangeSelectedState(String? value) {
+    if (value == null) {
       return;
     } else {
-      _selectedBirthDay = "";
-      date.day > 9
-          ? _selectedBirthDay = _selectedBirthDay! + date.day.toString()
-          : _selectedBirthDay = "${_selectedBirthDay!}0${date.day.toString()}";
-      date.month > 9
-          ? _selectedBirthDay = "${_selectedBirthDay!}-${date.month.toString()}"
-          : _selectedBirthDay =
-              "${_selectedBirthDay!}-0${date.month.toString()}";
-      _selectedBirthDay = "${_selectedBirthDay!}-${date.year.toString()}";
+      _selectedState = value;
+      notifyListeners();
     }
-    _setSaveProfileButtonState();
-    notifyListeners();
   }
 
-  Function get setSelectedBirthDay => _setSelectedBirthDay;
+  Function get onChangeSelectedState => _onChangeSelectedState;
 
-  //Email text field
-
-  final TextEditingController _emailController = TextEditingController();
-  TextEditingController get emailController => _emailController;
-  String? _inputedEmail;
-  String? get inputedEmail => _inputedEmail;
-  bool _emailErrorState = false;
-  bool get emailErrorState => _emailErrorState;
-  final String _emailErrorText = "Неправильний формат пошти";
-  String get emailErrorText => _emailErrorText;
-  void _onChangeInputedEmail(String value) {
-    value.isEmpty ? _inputedEmail = null : _inputedEmail = value;
-    _setSaveProfileButtonState();
-    notifyListeners();
-  }
-
-  Function get onChangeInputedEmail => _onChangeInputedEmail;
-
-  // State drop down list
-
-  final List<DropdownMenuItem<String>> _stateItems = [
+  final List<DropdownMenuItem<String>> _stateList = [
     DropdownMenuItem<String>(
       value: "Ukraine",
       child: Row(
@@ -249,20 +258,27 @@ class ProfileScreenController extends ChangeNotifier {
       ),
     ),
   ];
-  List<DropdownMenuItem<String>> get stateItems => _stateItems;
+  List<DropdownMenuItem<String>> get stateList => _stateList;
 
-  String? _selectedState;
-  String? get selectedState => _selectedState;
-  void _setSelectedState(String value) {
-    _selectedState = value;
-    notifyListeners();
-  }
-
-  Function get setSelectedState => _setSelectedState;
+  Function get onClickSelectDateField => _onClickSelectDateField;
 
   // Grounds for entry
 
-  final List<DropdownMenuItem<String>> _entryItems = [
+  String? _selectedEntry;
+  String? get selectedEntry => _selectedEntry;
+
+  void _onChangedSelectedEntry(String? value) {
+    if (value == null) {
+      return;
+    } else {
+      _selectedEntry = value;
+      notifyListeners();
+    }
+  }
+
+  Function get onChangedSelectedEntry => _onChangedSelectedEntry;
+
+  final List<DropdownMenuItem<String>> _entryList = [
     DropdownMenuItem<String>(
       value: "Refugee",
       child: Text(
@@ -300,33 +316,43 @@ class ProfileScreenController extends ChangeNotifier {
       ),
     ),
   ];
-  List<DropdownMenuItem<String>> get entryItems => _entryItems;
+  List<DropdownMenuItem<String>> get entryList => _entryList;
 
-  String? _selectedEntry;
-  String? get selectedEntry => _selectedEntry;
-
-  void _setSelectedEntry(String value) {
-    _selectedEntry = value;
+  // Select city screen
+  bool _selectCityScreenState = false;
+  bool get selectCityScreenState => _selectCityScreenState;
+  void _setSelectCityScreenState() {
+    _selectCityScreenState = !_selectCityScreenState;
     notifyListeners();
   }
 
-  Function get setSelectedEntry => _setSelectedEntry;
+  Function get setSelectCityScreenState => _setSelectCityScreenState;
 
-  // Polish or english level list
+  String? _selectedCity;
+  String? get selectedCity => _selectedCity;
+  void _setSelectedCity(String? value) {
+    if (value == null) {
+      _selectedCity = null;
+    } else {
+      if (_selectedCity == null) {
+        _selectedCity = value;
+      } else {
+        _selectedCity = "${_selectedCity!}, $value";
+      }
+    }
+  }
 
-  final List<DropdownMenuItem<String>> _languangeItems = [
-    DropdownMenuItem(
-      value: "Elementary",
-      child: Text(
-        "Початковий/Елементарний",
-        style: GoogleFonts.roboto(
-          fontSize: 16.0.sp,
-          fontWeight: FontWeight.w400,
-          fontStyle: FontStyle.normal,
-          color: const Color.fromARGB(255, 24, 24, 24),
-        ),
-      ),
-    ),
+  Function get setSelectedCity => _setSelectedCity;
+
+  // English or polish level list
+
+  String? _selectedPolishLevel;
+  String? get selectedPolishLevel => _selectedPolishLevel;
+
+  String? _selectedEnglishLevel;
+  String? get selectedEnglishLevel => _selectedEnglishLevel;
+
+  final List<DropdownMenuItem<String>> _levelList = [
     DropdownMenuItem(
       value: "A1",
       child: Text(
@@ -343,18 +369,6 @@ class ProfileScreenController extends ChangeNotifier {
       value: "A2",
       child: Text(
         "A2",
-        style: GoogleFonts.roboto(
-          fontSize: 16.0.sp,
-          fontWeight: FontWeight.w400,
-          fontStyle: FontStyle.normal,
-          color: const Color.fromARGB(255, 24, 24, 24),
-        ),
-      ),
-    ),
-    DropdownMenuItem(
-      value: "Intermediate",
-      child: Text(
-        "Cередній",
         style: GoogleFonts.roboto(
           fontSize: 16.0.sp,
           fontWeight: FontWeight.w400,
@@ -387,180 +401,164 @@ class ProfileScreenController extends ChangeNotifier {
         ),
       ),
     ),
+    DropdownMenuItem(
+      value: "C1",
+      child: Text(
+        "C1",
+        style: GoogleFonts.roboto(
+          fontSize: 16.0.sp,
+          fontWeight: FontWeight.w400,
+          fontStyle: FontStyle.normal,
+          color: const Color.fromARGB(255, 24, 24, 24),
+        ),
+      ),
+    ),
   ];
-  List<DropdownMenuItem<String>> get languangeItems => _languangeItems;
+  List<DropdownMenuItem<String>> get levelList => _levelList;
 
-  String? _selectedPolishLevel;
-  String? get selectedPolishLevel => _selectedPolishLevel;
-
-  String? _selectedEnglishLevel;
-  String? get selectedEnglishLevel => _selectedEnglishLevel;
-
-  void _setSelectedLanguangeLevel(String type, String value) {
-    switch (type) {
-      case "polish":
-        {
-          _selectedPolishLevel = value;
-          break;
-        }
-      case "english":
-        {
-          _selectedEnglishLevel = value;
-          break;
-        }
-    }
-    notifyListeners();
-  }
-
-  Function get setSelectedLanguangeLevel => _setSelectedLanguangeLevel;
-
-  // Select city screen
-
-  final Map<String, bool> _cityList = {};
-  Map<String, bool> get cityList => _cityList;
-
-  Future<void> _setCityList() async {
-    try {
-      List<String> response = await ApiClient().getCitiesList();
-      for (String e in response) {
-        _cityList[e] = false;
-      }
-    } catch (e) {
+  void _onChangedPolishOrEnglishLevel(String type, String? value) {
+    if (value == null) {
       return;
-    }
-  }
-
-  bool _selectCityScreenState = false;
-  bool get selectCityScreenState => _selectCityScreenState;
-  void _setSelectCityScreenState() async {
-    if (_selectCityScreenState) {
-      _selectCityScreenState = !_selectCityScreenState;
     } else {
-      await _setCityList();
-      _selectCityScreenState = !_selectCityScreenState;
-    }
-    notifyListeners();
-  }
-
-  Function get setSelectCityScreenState => _setSelectCityScreenState;
-
-  void _onClickCityListItem(int index) {
-    _cityList.update(
-      _cityList.keys.toList()[index],
-      (value) => !_cityList.values.toList()[index],
-    );
-    _setSelectButtonState();
-    notifyListeners();
-  }
-
-  Function get onClickCityListItem => _onClickCityListItem;
-
-  bool _selectButtonState = false;
-  bool get selectButtonState => _selectButtonState;
-
-  void _setSelectButtonState() {
-    for (bool item in _cityList.values.toList()) {
-      if (item) {
-        _selectButtonState = true;
-        break;
-      } else {
-        _selectButtonState = false;
-      }
-    }
-  }
-
-  // Select skills screen
-
-  bool _selectSkilsScreenState = false;
-  bool get selectSkillsScreenState => _selectSkilsScreenState;
-  void _setSelectSkillsScreenState() {
-    if (_selectSkilsScreenState) {
-      _selectSkilsScreenState = !_selectSkilsScreenState;
-    } else {
-      _getSkillList();
-      _selectSkilsScreenState = !_selectSkilsScreenState;
-    }
-    notifyListeners();
-  }
-
-  Function get setSelectSkillsScreenState => _setSelectSkillsScreenState;
-
-  final Map<String, bool> _skillList = {};
-  Map<String, bool> get skillList => _skillList;
-
-  Future<void> _getSkillList() async {
-    try {
-      List<String> response = await ApiClient().getSkillsList();
-      for (String item in response) {
-        _skillList[item] = false;
+      switch (type) {
+        case "polish":
+          {
+            _selectedPolishLevel = value;
+            break;
+          }
+        case "english":
+          {
+            _selectedEnglishLevel = value;
+            break;
+          }
       }
       notifyListeners();
-    } catch (e) {
-      return;
     }
   }
 
-  void _onClickSkillListItem(int index) {
-    _skillList.update(_skillList.keys.toList()[index],
-        (value) => !_skillList.values.toList()[index]);
-    _setSelectSkillButtonState();
+  Function get onChangedPolishOrEnglishLevel => _onChangedPolishOrEnglishLevel;
+
+  // Select skill screen
+
+  bool _selectSkillScreenState = false;
+  bool get selectSkillScreenState => _selectSkillScreenState;
+  void _setSelectSkillScreenState() {
+    _selectSkillScreenState = !_selectSkillScreenState;
     notifyListeners();
   }
 
-  Function get onClickSkillListItem => _onClickSkillListItem;
+  Function get setSelectSkillScreenState => _setSelectSkillScreenState;
 
-  bool _selectSkillButtonState = false;
-  bool get selectSkillButtonState => _selectSkillButtonState;
-  void _setSelectSkillButtonState() {
-    for (bool value in _skillList.values.toList()) {
-      if (value) {
-        _selectSkillButtonState = true;
-        break;
+  String? _selectedSkill;
+  String? get selectedSkill => _selectedSkill;
+  void _setSelectedSkill(String? value) {
+    if (value == null) {
+      _selectedSkill = null;
+    } else {
+      if (_selectedSkill == null) {
+        _selectedSkill = value;
       } else {
-        _selectSkillButtonState = false;
+        _selectedSkill = "${_selectedSkill!}, $value";
       }
     }
   }
 
-  //Save profiledata button
+  Function get setSelectedSkill => _setSelectedSkill;
 
-  bool _saveProfileButtonState = false;
-  bool get saveProfileButtonState => _saveProfileButtonState;
-  void _setSaveProfileButtonState() {
-    if (_inputedName != null &&
-        _inputedSurName != null &&
-        _selectedBirthDay != null &&
-        _inputedEmail != null) {
-      _saveProfileButtonState = true;
+  bool _sendButtonState = false;
+  bool get sentButtonState => _sendButtonState;
+  void _setSendButtonState() {
+    if (_nameController.text.isNotEmpty &&
+        _surnameController.text.isNotEmpty &&
+        _phoneController.text.isNotEmpty &&
+        _selectedBirthDate != null &&
+        _emailController.text.isNotEmpty) {
+      _sendButtonState = true;
     } else {
-      _saveProfileButtonState = false;
-    }
-  }
-
-  void _onClickSaveProfileButton() {
-    if (RegExp(r"(\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,6})").hasMatch(_inputedEmail!)) {
-      _emailErrorState = false;
-      _setSuccessfullyModalWindow();
-    } else {
-      _emailErrorState = true;
+      _sendButtonState = false;
     }
     notifyListeners();
   }
 
-  Function get onClickSaveProfileButton => _onClickSaveProfileButton;
+  Function get setSendButtonState => _setSendButtonState;
+
+  void _onClickSendButton() async {
+    if (!Hive.isBoxOpen("userInfo")) {
+      await Hive.openBox("userInfo");
+    }
+    Map<String, String?> data = {
+      "firstName": _nameController.text.trim(),
+      "lastName": _surnameController.text.trim(),
+      "birthDate": _selectedBirthDate!,
+      "phoneNumber": _phoneController.text,
+      "countryOfStay": _selectedState,
+      "groundOfStay": _selectedEntry,
+      "jobSearchCity": _selectedCity,
+      "polishLang": _selectedPolishLevel,
+      "engLang": _selectedEnglishLevel,
+      "skills": _selectedSkill
+    };
+    int? result;
+    try {
+      result = await MigrostoreApi().updateProfile(data);
+    } catch (e) {
+      return;
+    }
+
+    if (result == 200) {
+      Box box = Hive.box("userInfo");
+      box.get("userInfo")["firstName"] = _nameController.text.trim();
+      box.get("userInfo")["lastName"] = _surnameController.text.trim();
+      box.get("userInfo")["phoneNumber"] = _phoneController.text;
+      box.get("userInfo")["birthDate"] = _selectedBirthDate;
+      box.get("userInfo")["countryOfStay"] = _selectedState;
+      box.get("userInfo")["groundOfStay"] = _selectedEntry;
+      box.get("userInfo")["jobSearchCity"] = _selectedCity;
+      box.get("userInfo")["polishLang"] = _selectedPolishLevel;
+      box.get("userInfo")["engLang"] = _selectedEnglishLevel;
+      box.get("userInfo")["skills"] = _selectedSkill;
+      Hive.box("userInfo").put("userInfo", box.get("userInfo"));
+      _setSuccessfullyModalWindowState();
+    }
+  }
+
+  Function get onClickSendButton => _onClickSendButton;
+
+  // Hint text for phone input
+
+  bool _hintTextState = true;
+  bool get hintTextState => _hintTextState;
+  void _setHintTextState() {
+    if (_phoneController.text.isEmpty) {
+      _hintTextState = false;
+    } else {
+      return;
+    }
+    notifyListeners();
+  }
+
+  Function get setHintTextState => _setHintTextState;
+
+  void _onClickOutside() {
+    if (_phoneController.text.isEmpty) {
+      _hintTextState = true;
+    } else {
+      _hintTextState = false;
+    }
+    notifyListeners();
+  }
+
+  Function get onClickOutside => _onClickOutside;
 
   // Successfully modal window
 
-  bool _successfullyModalWindow = false;
-  bool get successfullyModalWindow => _successfullyModalWindow;
-  void _setSuccessfullyModalWindow() {
-    if (_successfullyModalWindow) {
-      _successfullyModalWindow = !_successfullyModalWindow;
-      notifyListeners();
-    } else {
-      _successfullyModalWindow = !_successfullyModalWindow;
-    }
+  bool _successfullyModalWindowState = false;
+  bool get successfullyModalWindowState => _successfullyModalWindowState;
+  void _setSuccessfullyModalWindowState() {
+    _successfullyModalWindowState = !_successfullyModalWindowState;
+    notifyListeners();
   }
 
-  Function get setSuccessfullyModalWindow => _setSuccessfullyModalWindow;
+  Function get setSuccessfullyModalWindowState =>
+      _setSuccessfullyModalWindowState;
 }
