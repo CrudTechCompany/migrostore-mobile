@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:migrostore/view/app_screen/app_screen_controller.dart';
@@ -59,6 +61,17 @@ class MenuScreenController extends ChangeNotifier {
   void _onClickMenuItem(BuildContext context, int index) async {
     switch (index) {
       case 0:
+        if (!Hive.isBoxOpen("userInfo")) {
+          await Hive.openBox("userInfo");
+        }
+        if (Hive.box("userInfo").get("userInfo")["isAuthorized"]) {
+          _setResumeScreenState();
+          Provider.of<MainScreenController>(context, listen: false)
+              .setNavigationBarState();
+        } else {
+          Provider.of<AppScreenController>(context, listen: false)
+              .setAuthScreenState();
+        }
         break;
       case 1:
         {
@@ -67,7 +80,6 @@ class MenuScreenController extends ChangeNotifier {
               .setNavigationBarState();
           break;
         }
-
       case 2:
         {
           if (Hive.isBoxOpen("userName")) {
@@ -114,4 +126,16 @@ class MenuScreenController extends ChangeNotifier {
   }
 
   Function get setWorkScreenState => _setWorkScreenState;
+
+  // Resume screen
+
+  bool _resumeScreenState = false;
+  bool get resumeScreenState => _resumeScreenState;
+
+  void _setResumeScreenState() {
+    _resumeScreenState = !_resumeScreenState;
+    notifyListeners();
+  }
+
+  Function get setResumeScreenState => _setResumeScreenState;
 }

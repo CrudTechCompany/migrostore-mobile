@@ -319,4 +319,55 @@ class MigrostoreApi {
 
   Future<int> Function(Map<String, dynamic> data) get confirmNewPassword =>
       _confirmNewPassword;
+
+  Future<List<int>> _createResume(Map<String, dynamic> data) async {
+    if (!Hive.isBoxOpen("userInfo")) {
+      await Hive.openBox("userInfo");
+    }
+    io.HttpClientRequest request = await _apiClient.postUrl(
+      Uri(scheme: "http", host: _host, path: "/api/v1/profile/cv/create"),
+    );
+    request.headers.add("Content-Type", "application/json; charset=utf-8");
+    request.headers.add("Authorization",
+        "Bearer ${Hive.box("userInfo").get("userInfo")["accessToken"]}");
+    request.write(jsonEncode(data));
+    io.HttpClientResponse response = await request.close();
+    List<int> result = await response.toList().then((value) {
+      List<int> tempo = [];
+      for (List<int> el in value) {
+        for (int item in el) {
+          tempo.add(item);
+        }
+      }
+      return tempo;
+    });
+    if (response.statusCode == 200) {
+      return result;
+    } else {
+      Map<String, String>? refreshResult = await _refreshToken(
+          Hive.box("userInfo").get("userInfo")["refreshToken"]);
+      if (refreshResult != null) {
+        if (Hive.isBoxOpen("userInfo")) {
+          Box box = Hive.box("userInfo");
+          box.get("userInfo")["accessToken"] = refreshResult["accessToken"];
+          box.get("userInfo")["refreshToken"] = refreshResult["refreshToken"];
+          Hive.box("userInfo").put("userInfo", box.get("userInfo"));
+        } else {
+          await Hive.openBox("userInfo").then((value) {
+            Box box = value;
+            box.get("userInfo")["accessToken"] = refreshResult["accessToken"];
+            box.get("userInfo")["refreshToken"] = refreshResult["refreshToken"];
+            Hive.box("userInfo").put("userInfo", box.get("userInfo"));
+          });
+        }
+        _createResume(data);
+      } else {
+        return result;
+      }
+    }
+    return result;
+  }
+
+  Future<List<int>> Function(Map<String, dynamic> data) get createResume =>
+      _createResume;
 }

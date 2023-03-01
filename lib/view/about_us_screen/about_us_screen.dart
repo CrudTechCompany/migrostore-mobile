@@ -46,7 +46,7 @@ class AboutUsScreen extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.only(top: 10.0.h),
                   child: Text(
-                    "Версія 0.0.00",
+                    "Версія 1.0.1",
                     style: GoogleFonts.roboto(
                       fontSize: 16.0.sp,
                       fontWeight: FontWeight.w400,

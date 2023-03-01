@@ -43,5 +43,9 @@
 	<false/>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Adding a photo to CV</string>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+	<key>UIFileSharingEnabled</key>
+	<true/>
 </dict>
 </plist>

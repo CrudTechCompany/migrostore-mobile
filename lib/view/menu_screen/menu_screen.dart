@@ -7,6 +7,8 @@ import 'package:migrostore/view/help_screen/help_screen_controller.dart';
 import 'package:migrostore/view/legalization_screen/legalization_screen.dart';
 import 'package:migrostore/view/legalization_screen/legalization_screen_controller.dart';
 import 'package:migrostore/view/menu_screen/menu_screen_controller.dart';
+import 'package:migrostore/view/resume_screen/resume_screen.dart';
+import 'package:migrostore/view/resume_screen/resume_screen_controller.dart';
 import 'package:migrostore/view/work_screen/work_screen.dart';
 import 'package:migrostore/view/work_screen/work_screen_controller.dart';
 import 'package:provider/provider.dart';
@@ -136,6 +138,12 @@ class MenuScreen extends StatelessWidget {
             ? ChangeNotifierProvider(
                 create: (_) => WorkScreenController(),
                 child: const WorkScreen(),
+              )
+            : const SizedBox.shrink(),
+        context.watch<MenuScreenController>().resumeScreenState
+            ? ChangeNotifierProvider(
+                create: (_) => ResumeScreenController(),
+                child: const ResumeScreen(),
               )
             : const SizedBox.shrink(),
       ],
