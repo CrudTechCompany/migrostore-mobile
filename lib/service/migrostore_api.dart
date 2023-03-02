@@ -324,6 +324,7 @@ class MigrostoreApi {
     if (!Hive.isBoxOpen("userInfo")) {
       await Hive.openBox("userInfo");
     }
+
     io.HttpClientRequest request = await _apiClient.postUrl(
       Uri(scheme: "http", host: _host, path: "/api/v1/profile/cv/create"),
     );
